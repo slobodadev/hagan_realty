@@ -1,0 +1,5 @@
+{% autoescape off %}{% block content %}{% endblock %}
+Best regards,
+Factour Team
+https://factour.com
+{% endautoescape %}

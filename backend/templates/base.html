@@ -1,0 +1,79 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    {% if request.META.HTTP_HOST == 'factour.com' %}
+        <!-- Google tag (gtag.js) --> <script async src="https://www.googletagmanager.com/gtag/js?id=G-T5JLSNE1WC"></script> <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-T5JLSNE1WC'); </script>
+    {% endif %}
+
+    <title>{% block meta_title %}Factour{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="description" content="{% block meta_description %}Factours{% endblock %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/x-icon"  href="{% static 'images/favicons/favicon.ico' %}" >
+    <link rel="apple-touch-icon" sizes="180x180"  href="{% static 'images/favicons/apple-touch-icon-180x180.png' %}" >
+    <link rel="icon" type="image/png" sizes="192x192"  href="{% static 'images/favicons/android-chrome-192x192.png' %}" >
+    <link rel="icon" type="image/png" sizes="16x16"  href="{% static 'images/favicons/favicon-16x16.png' %}" >
+    <link rel="icon" type="image/png" sizes="32x32"  href="{% static 'images/favicons/favicon-32x32.png' %}" >
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    
+    <script   src="https://code.jquery.com/jquery-3.7.1.min.js"   integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="   crossorigin="anonymous"></script>
+
+    <link href="{% static "app.css" %}" type="text/css" media="all" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+
+    <script src="{% static "app.js" %}" defer></script>
+    {% block extra_js %}{% endblock %}
+
+{#    {% if not local_timezone %}#}
+{#        <script>#}
+{#            document.cookie = "local_timezone=" + (new Date().getTimezoneOffset() / 60 * -1);#}
+{#        </script>#}
+{#    {% endif %}#}
+
+    {% load tz_detect %}
+    {% tz_detect %}
+
+    {% if request.META.HTTP_HOST == 'factour.com' %}
+        <!-- Meta Pixel Code -->
+        <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '915825607015730');
+        fbq('track', 'PageView');
+        </script>
+        <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=915825607015730&ev=PageView&noscript=1"
+        /></noscript>
+        <!-- End Meta Pixel Code -->
+    {% endif %}
+</head>
+<body>
+    {% include "components/navbar.html" %}
+    <div class="{%if user.is_authenticated %} nav-margin {% else %} nav-margin-lg {% endif %}">
+        {% include 'components/messages.html' %}
+    
+        {% block content %}
+            The main content information have to be passed here...
+        {% endblock %}
+    </div>
+    {% include "components/footer.html" %}
+</body>
+</html>

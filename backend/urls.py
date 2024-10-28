@@ -26,7 +26,7 @@ admin.site.site_header = "Mammoth Agency"
 
 urlpatterns = [
     path("", RedirectView.as_view(url="dashboard/")),
-    path("dashboard/", admin.site.urls),
+    path("admin/", admin.site.urls),
     # path(
     #     "favicon.ico",
     #     RedirectView.as_view(

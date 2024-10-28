@@ -57,7 +57,7 @@ if DEBUG:
 
 # custom apps
 INSTALLED_APPS += [
-    # "linkfusion",
+    "brightmls",
 ]
 
 

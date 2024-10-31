@@ -33,4 +33,7 @@ Local development is done with docker-compose.
 To see logs of the project, run `docker-compose logs -f` in the root of the project
        
 
- 
+## Database
+
+In db container:
+`pg_dump --username=local_dbuser --host=localhost local_db > 2024-10-29.sql`

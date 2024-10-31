@@ -70,7 +70,7 @@ class BuilderModel(BaseModel):
     FIXME Does not exist in metadata....
     """
 
-    BuilderModelKey = models.BigIntegerField(primary_key=True)
+    BuilderModelKey = models.CharField(max_length=255, primary_key=True)
     BuilderModelName = models.CharField(max_length=50, null=True)
     BuilderModelRelatedBuilderModelKey = models.CharField(max_length=255, null=True)
     BuilderModelStatus = models.CharField(max_length=255, null=True)
@@ -89,7 +89,7 @@ class LisBusinessHistory(BaseModel):
     FIXME Does not exist in metadata....
     """
 
-    UchPropHistChangeKey = models.BigIntegerField(primary_key=True)
+    UchPropHistChangeKey = models.CharField(max_length=255)
     UchPropHistListingKey = models.CharField(max_length=255, null=True)
     UchPropHistPartyKey = models.CharField(max_length=255, null=True)
     UchPropHistChangeType = models.CharField(max_length=20, null=True)
@@ -152,7 +152,7 @@ class BrightProperties(BaseModel):
     ListingAgreementType = models.CharField(max_length=255, null=True)
     ProspectsExcludedYN = models.BooleanField(null=True)
     ListingId = models.CharField(max_length=255, null=True)
-    ListingKey = models.BigIntegerField(primary_key=True)
+    ListingKey = models.CharField(max_length=255)
     ListingServiceType = models.CharField(max_length=255, null=True)
     StandardStatus = models.CharField(max_length=255, null=True)
     MlsStatus = models.CharField(max_length=255, null=True)
@@ -1067,7 +1067,7 @@ class BrightProperties(BaseModel):
 
 class SysOfficeMedia(BaseModel):
     SysMediaObjectKey = models.CharField(max_length=255, null=True)
-    SysMediaKey = models.BigIntegerField(primary_key=True)
+    SysMediaKey = models.CharField(max_length=255)
     SysMediaType = models.CharField(max_length=255, null=True)
     SysMediaExternalKey = models.CharField(max_length=20, null=True)
     SysMediaItemNumber = models.IntegerField(null=True)
@@ -1105,7 +1105,7 @@ class ListingSubscription(BaseModel):
     FIXME: Does not exist in metadata
     """
 
-    LsubKey = models.BigIntegerField(primary_key=True)
+    LsubKey = models.CharField(max_length=255)
     LsubListingKey = models.CharField(max_length=255, null=True)
     LsubRequestedClassKey = models.CharField(max_length=255, null=True)
     LsubClassKey = models.CharField(max_length=255, null=True)
@@ -1121,7 +1121,7 @@ class ListingSubscription(BaseModel):
 
 class PropertyArea(BaseModel):
     Location = models.CharField(max_length=255, null=True)
-    PropAreaKey = models.BigIntegerField(primary_key=True)
+    PropAreaKey = models.CharField(max_length=255)
     PropAreaCounty = models.CharField(max_length=255, null=True)
     PropAreaType = models.CharField(max_length=255, null=True)
     PropAreaModificationTimestamp = models.DateTimeField(null=True)
@@ -1135,8 +1135,8 @@ class PropertyArea(BaseModel):
 
 
 class RelatedLookup(BaseModel):
-    LookupKey = models.CharField(max_length=15, null=True)
-    RelatedLookupKey = models.BigIntegerField(primary_key=True)
+    LookupKey = models.CharField(max_length=15)
+    RelatedLookupKey = models.CharField(max_length=15, null=True, primary_key=True)
     ModificationTimestamp = models.DateTimeField(null=True)
 
     class Meta:
@@ -1147,7 +1147,7 @@ class RelatedLookup(BaseModel):
 
 
 class CityZipCode(BaseModel):
-    CityZipCodeKey = models.BigIntegerField(primary_key=True)
+    CityZipCodeKey = models.CharField(max_length=255, primary_key=True)
     CityZipCodeCity = models.CharField(max_length=255, null=True)
     CityZipCodeCityName = models.CharField(max_length=50, null=True)
     CityZipCodeCounty = models.CharField(max_length=255, null=True)
@@ -1174,7 +1174,7 @@ class BrightMedia(BaseModel):
     MediaFileName = models.CharField(max_length=3000, null=True)
     MediaImageOf = models.CharField(max_length=255, null=True)
     MediaItemNumber = models.IntegerField(null=True)
-    MediaKey = models.BigIntegerField(primary_key=True)
+    MediaKey = models.CharField(max_length=255)
     MediaLongDescription = models.CharField(max_length=1024, null=True)
     MediaModificationTimestamp = models.DateTimeField(null=True)
     MediaDisplayOrder = models.IntegerField(null=True)
@@ -1226,7 +1226,7 @@ class BrightMedia(BaseModel):
 
 
 class TeamMember(BaseModel):
-    TeamMemberKey = models.BigIntegerField(primary_key=True)
+    TeamMemberKey = models.CharField(max_length=255, primary_key=True)
     TeamMemberTeamKey = models.CharField(max_length=255, null=True)
     TeamMemberMemberKey = models.CharField(max_length=255, null=True)
     TeamMemberRelationshipKey = models.CharField(max_length=255, null=True)
@@ -1244,7 +1244,7 @@ class TeamMember(BaseModel):
 class Deletion(BaseModel):
     TableName = models.CharField(max_length=30, null=True)
     SchemaShortName = models.CharField(max_length=5, null=True)
-    UniversalKey = models.BigIntegerField(primary_key=True)
+    UniversalKey = models.CharField(max_length=255)
     DeletionTimestamp = models.DateTimeField(null=True)
     DeleteKey = models.CharField(max_length=256, null=True)
 
@@ -1281,7 +1281,7 @@ class BrightOffices(BaseModel):
     OfficeDateTerminated = models.DateTimeField(null=True)
     OfficeEmail = models.CharField(max_length=80, null=True)
     OfficeFax = models.CharField(max_length=16, null=True)
-    OfficeKey = models.BigIntegerField(primary_key=True)
+    OfficeKey = models.CharField(max_length=255)
     OfficeManagerKey = models.CharField(max_length=255, null=True)
     OfficeLatitude = models.CharField(max_length=255, null=True)
     OfficeLeadToListingAgentYN = models.BooleanField(null=True)
@@ -1342,7 +1342,7 @@ class BrightOffices(BaseModel):
 
 
 class SchoolDistrict(BaseModel):
-    SchoolDistrictKey = models.BigIntegerField(primary_key=True)
+    SchoolDistrictKey = models.CharField(max_length=255, primary_key=True)
     SchoolDistrictName = models.CharField(max_length=80, null=True)
     SchoolDistrictURL = models.URLField(max_length=4000, null=True)
     SchoolDistrictCounty = models.CharField(max_length=255, null=True)
@@ -1357,7 +1357,7 @@ class SchoolDistrict(BaseModel):
 
 
 class PartyPermissions(BaseModel):
-    PartyPermKey = models.BigIntegerField(primary_key=True)
+    PartyPermKey = models.CharField(max_length=255)
     PartyPermAccessLevelType = models.CharField(max_length=255, null=True)
     PartyPermPermissionType = models.CharField(max_length=255, null=True)
     PartyPermGrantorPartyKey = models.CharField(max_length=255, null=True)
@@ -1375,7 +1375,7 @@ class PartyPermissions(BaseModel):
 
 
 class SysPartyLicense(BaseModel):
-    SysPartyLicenseKey = models.BigIntegerField(primary_key=True)
+    SysPartyLicenseKey = models.CharField(max_length=255, primary_key=True)
     SysPartyLicenseState = models.CharField(max_length=255, null=True)
     SysPartyLicenseNumber = models.CharField(max_length=20, null=True)
     SysPartyLicenseExpirationDate = models.DateField(null=True)
@@ -1401,7 +1401,7 @@ class BrightOpenHouses(BaseModel):
     OpenHouseDate = models.DateField(null=True)
     OpenHouseItemNumber = models.IntegerField(null=True)
     OpenHouseEndTime = models.DateTimeField(null=True)
-    OpenHouseKey = models.BigIntegerField(primary_key=True)
+    OpenHouseKey = models.CharField(max_length=255)
     OpenHouseListingKey = models.CharField(max_length=255, null=True)
     OpenHouseModificationTimestamp = models.DateTimeField(null=True)
     OpenHouseSourceBusinessPartner = models.CharField(max_length=255, null=True)
@@ -1427,7 +1427,7 @@ class BrightOpenHouses(BaseModel):
 
 
 class History(BaseModel):
-    PropHistKey = models.BigIntegerField(primary_key=True)
+    PropHistKey = models.CharField(max_length=255)
     PropHistListingKey = models.CharField(max_length=255, null=True)
     PropHistRecordKey = models.CharField(max_length=255, null=True)
     PropHistPartyKey = models.CharField(max_length=255, null=True)
@@ -1457,12 +1457,7 @@ class History(BaseModel):
     PropHistHistColumnKey = models.CharField(max_length=255, null=True)
 
     class Meta:
-        ordering = ["-PropHistChangeTimestamp"]
-        indexes = [
-            models.Index(fields=["PropHistChangeTimestamp"]),
-            models.Index(fields=["PropHistListingKey"]),
-            models.Index(fields=["PropHistTableName"]),
-        ]
+        pass
 
     def __str__(self) -> str:
         return str(self.PropHistKey)
@@ -1539,7 +1534,7 @@ class BrightMembers(BaseModel):
     MemberFullName = models.CharField(max_length=150, null=True)
     MemberFullRoleList = models.CharField(max_length=4000, null=True)
     MemberJoinDate = models.DateField(null=True)
-    MemberKey = models.BigIntegerField(primary_key=True)
+    MemberKey = models.CharField(max_length=255)
     MemberLastName = models.CharField(max_length=50, null=True)
     MemberLicenseExpirationDate = models.DateField(null=True)
     MemberLoginId = models.CharField(max_length=25, null=True)

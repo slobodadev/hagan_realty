@@ -24,17 +24,27 @@ After installing Docker and Docker-compose, you need to change some Docker setti
 Also you need to have prepaid BrightMLS API account
 
 
-# Local deployment
+## Local deployment
 
-## Installation
+### Run
 
 Local development is done with docker-compose.
 1. Clone the repository
-2. Copy .env.example to .env and fill in the variables
+2. Copy .env.example to .env and fill in the variables (OPENAI_API_KEY is optional)
 4. Run `docker-compose up -d --build`
 5. Run `docker-compose exec web python manage.py migrate`
-6. To access adminpanel, run `docker-compose exec ft_web python manage.py createsuperuser` and fill in the required fields
+6. To access adminpanel, run `docker-compose exec web python manage.py createsuperuser` and fill in the required fields
 7. Open http://localhost:8000 in your browser
+
+
+### Stop
+
+To stop the project, run `docker-compose down`
+
+
+### Start if stopped
+
+To start the project after it was already build once and just stopped, run `docker-compose up -d`
 
                               
 ## Usage

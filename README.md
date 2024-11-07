@@ -77,6 +77,7 @@ To populate the database with the data from the BrightMLS API, run the following
 1. `docker-compose exec web python manage.py mls_grab TeamMember` 	
 1. `docker-compose exec web python manage.py mls_grab Unit` (this entity is not working properly, so it will not return the whole dataset)	
 
+The inserting process is configuring to skip already existing records with the same PK. So, if you run the command again, it will not insert the same records again.
 
 ### Truncating the DB tables
 
@@ -91,6 +92,12 @@ This will clear the table of the specified entity.
 
 This section is not finished yet... 
 
+### Changing the structure of the DB
+
+Please, do not change the structure of the DB using raw SQL queries. Use Django migrations instead.
+You will get the problems with data compatibility if you change the structure of the DB using raw SQL queries 
+and apply any Django migration after that.
+
 
 ## Logs
 
@@ -103,9 +110,9 @@ To see logs of the web project, run `docker-compose logs -f` in the root of the 
 Go to `/tmp/dumps` directory (it is volume mapped to the `dumps` directory in the root of the project)
 
 Run the following command: 
-`docker-compose exec db pg_dump -Fc --data-only --username=local_dbuser --host=localhost local_db > 2024-10-29.sql`
+`docker-compose exec db pg_dump -Fc -t 'brightmls_*' --data-only --username=local_dbuser --host=localhost local_db > 2024-10-29.sql`
 
-This will create a dump of all tables but WITHOUT the schema. INSERT statements will be used to restore the data.
+This will create a dump of all tables of brightmls app, but WITHOUT the schema. INSERT statements will be used to restore the data.
 
 
 ### Restore
@@ -114,7 +121,7 @@ To restore the database:
 Put the dump file to your local `/dumps` directory in the root of the project (it is volume mapped to the `/tmp/dumps` directory in the container)
 
 Run the following command:
-`docker-compose exec db psql -U local_dbuser -h localhost -d local_db < "/tmp/dumps/2024-10-29.sql"`
+`docker-compose exec db pg_restore --data-only --username=local_dbuser --host=localhost --dbname=local_db /tmp/dumps/2024-10-29.sql`
 
 Beware, the dump file have to contain only the data, not the schema. Otherwise, the restore will fail.
 

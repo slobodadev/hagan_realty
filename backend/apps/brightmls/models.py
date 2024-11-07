@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.dateparse import parse_datetime
+from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 
 
 class BaseModel(models.Model):
@@ -9,6 +10,8 @@ class BaseModel(models.Model):
 
     usage: instance = AnyModel.from_python_odata(odata_entity_object)
     """
+
+    objects = BulkUpdateOrCreateQuerySet.as_manager()
 
     class Meta:
         abstract = True
@@ -64,58 +67,309 @@ class BaseModel(models.Model):
             return field_name
         return "".join([word.capitalize() for word in field_name.split("_")])
 
+    def update_from_odata(self, odata_obj):
+        """
+        Update the model instance from a python_odata entity object.
+        """
+        for field in self._meta.get_fields():
+            # do not update primary key
+            if field.primary_key:
+                continue
 
-class BuilderModel(BaseModel):
-    """
-    FIXME Does not exist in metadata....
-    """
+            field_name = field.name
+            if hasattr(odata_obj, field_name):
+                value = getattr(odata_obj, field_name)
+                if isinstance(field, models.DateTimeField) and isinstance(value, str):
+                    value = parse_datetime(value)
 
-    BuilderModelKey = models.BigIntegerField(primary_key=True)
-    BuilderModelName = models.CharField(max_length=50, null=True)
-    BuilderModelRelatedBuilderModelKey = models.CharField(max_length=255, null=True)
-    BuilderModelStatus = models.CharField(max_length=255, null=True)
-    BuilderModelCounty = models.CharField(max_length=255, null=True)
-    BuilderModelModificationTimestamp = models.DateTimeField(null=True)
+                setattr(self, field_name, value)
+
+
+class BrightMedia(BaseModel):
+    Location = models.CharField(max_length=255, null=True)
+    PropertyType = models.CharField(max_length=255, null=True)
+    County = models.CharField(max_length=255, null=True)
+    MediaBytes = models.CharField(max_length=255, null=True)
+    MediaCategory = models.CharField(max_length=255, null=True)
+    MediaCreationTimestamp = models.DateTimeField(null=True)
+    MediaExternalKey = models.CharField(max_length=20, null=True)
+    MediaFileName = models.CharField(max_length=3000, null=True)
+    MediaImageOf = models.CharField(max_length=255, null=True)
+    MediaItemNumber = models.IntegerField(null=True)
+    MediaKey = models.BigIntegerField(primary_key=True)
+    MediaLongDescription = models.CharField(max_length=1024, null=True)
+    MediaModificationTimestamp = models.DateTimeField(null=True)
+    MediaDisplayOrder = models.IntegerField(null=True)
+    MediaOriginalBytes = models.CharField(max_length=255, null=True)
+    MediaOriginalHeight = models.IntegerField(null=True)
+    MediaOriginalWidth = models.IntegerField(null=True)
+    MediaShortDescription = models.CharField(max_length=50, null=True)
+    MediaSizeDescription = models.CharField(max_length=255, null=True)
+    MediaSourceFileName = models.CharField(max_length=3000, null=True)
+    MediaSubSystemLocale = models.CharField(max_length=255, null=True)
+    MediaSystemLocale = models.CharField(max_length=255, null=True)
+    MediaType = models.CharField(max_length=255, null=True)
+    MediaURL = models.URLField(max_length=4000, null=True)
+    MediaURLFull = models.URLField(max_length=4000, null=True)
+    MediaURLHD = models.URLField(max_length=4000, null=True)
+    MediaURLHiRes = models.URLField(max_length=4000, null=True)
+    MediaURLMedium = models.URLField(max_length=4000, null=True)
+    MediaURLThumb = models.URLField(max_length=4000, null=True)
+    MlsStatus = models.CharField(max_length=255, null=True)
+    PreferredPhotoYN = models.BooleanField(null=True)
+    ResourceName = models.CharField(max_length=255, null=True)
+    ListingId = models.CharField(max_length=255, null=True)
+    ResourceRecordKey = models.CharField(max_length=255, null=True)
+    MediaVendorID = models.CharField(max_length=30, null=True)
+    MediaVendorName = models.CharField(max_length=80, null=True)
+    MediaVendorIDType = models.CharField(max_length=255, null=True)
+    MediaSourceBusinessPartner = models.CharField(max_length=255, null=True)
+    MediaSourceInput = models.CharField(max_length=255, null=True)
+    MediaSourceTransport = models.CharField(max_length=255, null=True)
+    MediaImageHeight = models.IntegerField(null=True)
+    MediaImageWidth = models.IntegerField(null=True)
+    ListingSourceRecordKey = models.CharField(max_length=30, null=True)
+    MediaVisibility = models.CharField(max_length=255, null=True)
+    PropMediaProcessingStatus = models.CharField(max_length=255, null=True)
+    PropMediaPendingFileName = models.CharField(max_length=3000, null=True)
+    PropMediaExtSysProcessingCode = models.CharField(max_length=4000, null=True)
+    PropMediaExtSysProcessingTime = models.IntegerField(null=True)
+    PropMediaExtSysResizeTime = models.IntegerField(null=True)
+    PropMediaExtSysTotalBytes = models.CharField(max_length=255, null=True)
+    PropMediaExtSysWriteTime = models.IntegerField(null=True)
+    PropMediaExtSysErrorMessage = models.CharField(max_length=4000, null=True)
+    MediaObjectId = models.CharField(max_length=255, null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "BrightMedia"
+        indexes = [
+            models.Index(fields=["MediaModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
-        return str(self.BuilderModelName)
+        return str(self.MediaKey)
 
 
-class LisBusinessHistory(BaseModel):
-    """
-    FIXME Does not exist in metadata....
-    """
-
-    UchPropHistChangeKey = models.BigIntegerField(primary_key=True)
-    UchPropHistListingKey = models.CharField(max_length=255, null=True)
-    UchPropHistPartyKey = models.CharField(max_length=255, null=True)
-    UchPropHistChangeType = models.CharField(max_length=20, null=True)
-    UchPropHistChangeTypePckItemKey = models.CharField(max_length=255, null=True)
-    UchPropHistChangeTimestamp = models.DateTimeField(null=True)
-    SystemName = models.CharField(max_length=50, null=True)
-    PropHistColumnName = models.CharField(max_length=64, null=True)
-    TableName = models.CharField(max_length=30, null=True)
-    TableSchemaKey = models.CharField(max_length=255, null=True)
-    UchPropHistOriginalColumnValue = models.CharField(max_length=4000, null=True)
-    UchPropHistNewColumnValue = models.CharField(max_length=4000, null=True)
-    UchPropHistOriginalPickListValue = models.CharField(max_length=80, null=True)
-    UchPropHistNewPickListValue = models.CharField(max_length=80, null=True)
-    UchPropHistItemNumber = models.IntegerField(null=True)
-    UchPropHistSubSystemLocale = models.CharField(max_length=255, null=True)
-    UchPropHistSystemLocale = models.CharField(max_length=255, null=True)
-    BasicListingID = models.CharField(max_length=20, null=True)
-    FullStreetAddress = models.CharField(max_length=80, null=True)
-    UchPropHistCreationTimestamp = models.DateTimeField(null=True)
-    UchPropHistModificationTimestamp = models.DateTimeField(null=True)
+class BrightMembers(BaseModel):
+    JobTitle = models.CharField(max_length=50, null=True)
+    MemberAddress1 = models.CharField(max_length=50, null=True)
+    MemberAddress2 = models.CharField(max_length=50, null=True)
+    MemberBoxNumber = models.CharField(max_length=10, null=True)
+    MemberCity = models.CharField(max_length=50, null=True)
+    MemberCountry = models.CharField(max_length=255, null=True)
+    MemberCounty = models.CharField(max_length=255, null=True)
+    MemberDesignation = models.JSONField(default=list)
+    MemberDirectPhone = models.CharField(max_length=16, null=True)
+    MemberEmail = models.CharField(max_length=80, null=True)
+    MemberFax = models.CharField(max_length=16, null=True)
+    MemberFirstName = models.CharField(max_length=50, null=True)
+    MemberFullName = models.CharField(max_length=150, null=True)
+    MemberFullRoleList = models.CharField(max_length=4000, null=True)
+    MemberJoinDate = models.DateField(null=True)
+    MemberKey = models.BigIntegerField(primary_key=True)
+    MemberLastName = models.CharField(max_length=50, null=True)
+    MemberLicenseExpirationDate = models.DateField(null=True)
+    MemberLoginId = models.CharField(max_length=25, null=True)
+    MemberMiddleInitial = models.CharField(max_length=5, null=True)
+    MemberMiddleName = models.CharField(max_length=50, null=True)
+    MemberMlsId = models.CharField(max_length=25, null=True)
+    MemberMobilePhone = models.CharField(max_length=16, null=True)
+    MemberNamePrefix = models.CharField(max_length=255, null=True)
+    MemberNameSuffix = models.CharField(max_length=255, null=True)
+    MemberNationalAssociationId = models.CharField(max_length=25, null=True)
+    MemberNickname = models.CharField(max_length=50, null=True)
+    MemberNumViolations = models.IntegerField(null=True)
+    MemberOfficePhone = models.CharField(max_length=16, null=True)
+    MemberOfficePhoneExt = models.IntegerField(null=True)
+    MemberPager = models.CharField(max_length=16, null=True)
+    MemberPostalCode = models.CharField(max_length=10, null=True)
+    MemberPostalCodePlus4 = models.CharField(max_length=4, null=True)
+    MemberPreferredPhone = models.CharField(max_length=16, null=True)
+    MemberPreferredPhoneExt = models.IntegerField(null=True)
+    MemberPrivateEmail = models.CharField(max_length=3000, null=True)
+    MemberRatePlugFlag = models.BooleanField(null=True)
+    MemberReinstatementDate = models.DateField(null=True)
+    MemberRoleList = models.CharField(max_length=4000, null=True)
+    MemberStateLicense = models.CharField(max_length=50, null=True)
+    MemberStateLicenseState = models.CharField(max_length=255, null=True)
+    MemberStateOrProvince = models.CharField(max_length=255, null=True)
+    MemberStatus = models.CharField(max_length=255, null=True)
+    MemberStreetDirSuffix = models.CharField(max_length=255, null=True)
+    MemberStreetException = models.CharField(max_length=10, null=True)
+    MemberStreetName = models.CharField(max_length=50, null=True)
+    MemberStreetNumber = models.IntegerField(null=True)
+    MemberStreetSuffix = models.CharField(max_length=255, null=True)
+    MemberTerminationDate = models.DateField(null=True)
+    MemberType = models.CharField(max_length=255, null=True)
+    MemberSubType = models.CharField(max_length=255, null=True)
+    MemberUnitDesignation = models.CharField(max_length=255, null=True)
+    MemberUnitNumber = models.CharField(max_length=20, null=True)
+    MemberVoiceMailExt = models.CharField(max_length=15, null=True)
+    MemberVoiceMail = models.CharField(max_length=16, null=True)
+    ModificationTimestamp = models.DateTimeField(null=True)
+    OfficeKey = models.CharField(max_length=255, null=True)
+    OfficeMlsId = models.CharField(max_length=25, null=True)
+    OfficeBrokerKey = models.CharField(max_length=255, null=True)
+    OfficeName = models.CharField(max_length=80, null=True)
+    OfficeBrokerMlsId = models.CharField(max_length=25, null=True)
+    MemberDateAdded = models.DateTimeField(null=True)
+    SocialMediaBlogUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaFacebookUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaLinkedInUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaTwitterUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaWebsiteUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaYouTubeUrlOrId = models.CharField(max_length=8000, null=True)
+    MemberSourceInput = models.CharField(max_length=255, null=True)
+    MemberSourceRecordKey = models.CharField(max_length=255, null=True)
+    MemberSourceRecordID = models.CharField(max_length=128, null=True)
+    MemberSourceBusinessPartner = models.CharField(max_length=255, null=True)
+    MemberSourceTransport = models.CharField(max_length=255, null=True)
+    SyndicateTo = models.JSONField(default=list)
+    MemberSubSystemLocale = models.CharField(max_length=255, null=True)
+    MemberSystemLocale = models.CharField(max_length=255, null=True)
+    MemberPreferredFirstName = models.CharField(max_length=128, null=True)
+    MemberPreferredLastName = models.CharField(max_length=128, null=True)
+    MemberBrightConvertedYN = models.BooleanField(null=True)
+    MemberAssociationPrimary = models.CharField(max_length=255, null=True)
+    MemberAssociationsFullList = models.JSONField(default=list)
+    MemberPreviewYN = models.BooleanField(null=True)
+    SourceModificationTimestamp = models.DateTimeField(null=True)
+    MemberStreetDirPrefix = models.CharField(max_length=255, null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "BrightMembers"
+        indexes = [
+            models.Index(fields=["ModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
-        return str(self.UchPropHistChangeKey)
+        return self.MemberStreetDirPrefix
+
+
+class BrightOffices(BaseModel):
+    FranchiseAffiliation = models.CharField(max_length=50, null=True)
+    IDXOfficeParticipationYN = models.BooleanField(null=True)
+    MainOfficeKey = models.CharField(max_length=255, null=True)
+    MainOfficeMlsId = models.CharField(max_length=25, null=True)
+    ModificationTimestamp = models.DateTimeField(null=True)
+    OfficeAssociationPrimary = models.CharField(max_length=255, null=True)
+    OfficeAddress1 = models.CharField(max_length=50, null=True)
+    OfficeAddress2 = models.CharField(max_length=50, null=True)
+    OfficeBoxNumber = models.CharField(max_length=10, null=True)
+    OfficeBranchType = models.CharField(max_length=255, null=True)
+    OfficeBrokerAcceptedPortalTermsOfUseYN = models.BooleanField(null=True)
+    OfficeBrokerAcceptedPortalTermsOfUseVersion = models.CharField(
+        max_length=10, null=True
+    )
+    OfficeBrokerKey = models.CharField(max_length=255, null=True)
+    OfficeBrokerLeadEmail = models.CharField(max_length=128, null=True)
+    OfficeBrokerLeadPhoneNumber = models.CharField(max_length=128, null=True)
+    OfficeBrokerMlsId = models.CharField(max_length=25, null=True)
+    OfficeCity = models.CharField(max_length=50, null=True)
+    OfficeCountry = models.CharField(max_length=255, null=True)
+    OfficeCounty = models.CharField(max_length=255, null=True)
+    OfficeDateAdded = models.DateTimeField(null=True)
+    OfficeDateTerminated = models.DateTimeField(null=True)
+    OfficeEmail = models.CharField(max_length=80, null=True)
+    OfficeFax = models.CharField(max_length=16, null=True)
+    OfficeKey = models.BigIntegerField(primary_key=True)
+    OfficeManagerKey = models.CharField(max_length=255, null=True)
+    OfficeLatitude = models.CharField(max_length=255, null=True)
+    OfficeLeadToListingAgentYN = models.BooleanField(null=True)
+    OfficeLongitude = models.CharField(max_length=255, null=True)
+    OfficeManagerEmail = models.CharField(max_length=3000, null=True)
+    OfficeManagerMlsId = models.CharField(max_length=25, null=True)
+    OfficeManagerName = models.CharField(max_length=80, null=True)
+    OfficeMlsId = models.CharField(max_length=25, null=True)
+    OfficeName = models.CharField(max_length=80, null=True)
+    OfficeNationalAssociationId = models.CharField(max_length=25, null=True)
+    OfficeNumViolations = models.IntegerField(null=True)
+    OfficePhone = models.CharField(max_length=16, null=True)
+    OfficePhoneExt = models.IntegerField(null=True)
+    OfficePhoneOther = models.CharField(max_length=10, null=True)
+    OfficePostalCode = models.CharField(max_length=10, null=True)
+    OfficePostalCodePlus4 = models.CharField(max_length=4, null=True)
+    OfficeRoleList = models.CharField(max_length=4000, null=True)
+    OfficeStateOrProvince = models.CharField(max_length=255, null=True)
+    OfficeStatus = models.CharField(max_length=255, null=True)
+    OfficeStreetDirSuffix = models.CharField(max_length=255, null=True)
+    OfficeStreetException = models.CharField(max_length=10, null=True)
+    OfficeStreetName = models.CharField(max_length=50, null=True)
+    OfficeStreetNumber = models.IntegerField(null=True)
+    OfficeStreetSuffix = models.CharField(max_length=255, null=True)
+    OfficeTradingAs = models.CharField(max_length=50, null=True)
+    OfficeType = models.CharField(max_length=255, null=True)
+    OfficeUnitDesignation = models.CharField(max_length=255, null=True)
+    OfficeUnitNumber = models.CharField(max_length=20, null=True)
+    OfficeUserName = models.CharField(max_length=30, null=True)
+    OfficeSubSystemLocale = models.CharField(max_length=255, null=True)
+    OfficeSystemLocale = models.CharField(max_length=255, null=True)
+    SocialMediaBlogUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaFacebookUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaLinkedInUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaTwitterUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaWebsiteUrlOrId = models.CharField(max_length=8000, null=True)
+    SocialMediaYouTubeUrlOrId = models.CharField(max_length=8000, null=True)
+    OfficeSourceBusinessPartner = models.CharField(max_length=255, null=True)
+    OfficeSourceRecordKey = models.CharField(max_length=255, null=True)
+    SyndicateAgentOption = models.CharField(max_length=255, null=True)
+    SyndicateTo = models.JSONField(default=list)
+    OfficeSourceRecordID = models.CharField(max_length=128, null=True)
+    OfficeBrightConvertedYN = models.BooleanField(null=True)
+    OfficeSourceInput = models.CharField(max_length=255, null=True)
+    OfficeSourceTransport = models.CharField(max_length=255, null=True)
+    MainOfficeName = models.CharField(max_length=50, null=True)
+    OfficeAssociationsFullList = models.JSONField(default=list)
+    OfficeValidationStatus = models.CharField(max_length=255, null=True)
+    OfficeCorporateLicense = models.CharField(max_length=50, null=True)
+    SourceModificationTimestamp = models.DateTimeField(null=True)
+    OfficeStreetDirPrefix = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name_plural = "BrightOffices"
+        indexes = [
+            models.Index(fields=["ModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.OfficeKey)
+
+
+class BrightOpenHouses(BaseModel):
+    County = models.CharField(max_length=255, null=True)
+    ListingId = models.CharField(max_length=255, null=True)
+    MlsStatus = models.CharField(max_length=255, null=True)
+    OpenHouseAttendedBy = models.CharField(max_length=255, null=True)
+    OpenHouseCreationTimestamp = models.DateTimeField(null=True)
+    OpenHouseDate = models.DateField(null=True)
+    OpenHouseItemNumber = models.IntegerField(null=True)
+    OpenHouseEndTime = models.DateTimeField(null=True)
+    OpenHouseKey = models.BigIntegerField(primary_key=True)
+    OpenHouseListingKey = models.CharField(max_length=255, null=True)
+    OpenHouseModificationTimestamp = models.DateTimeField(null=True)
+    OpenHouseSourceBusinessPartner = models.CharField(max_length=255, null=True)
+    OpenHouseSourceInput = models.CharField(max_length=255, null=True)
+    OpenHouseRemarks = models.CharField(max_length=500, null=True)
+    OpenHouseSourceTransport = models.CharField(max_length=255, null=True)
+    OpenHouseSubSystemLocale = models.CharField(max_length=255, null=True)
+    OpenHouseSystemLocale = models.CharField(max_length=255, null=True)
+    ListingSourceRecordKey = models.CharField(max_length=30, null=True)
+    OpenHouseExternalSystemID = models.CharField(max_length=30, null=True)
+    ListOfficeMlsId = models.CharField(max_length=25, null=True)
+    OpenHouseStartTime = models.DateTimeField(null=True)
+    OpenHouseType = models.CharField(max_length=255, null=True)
+    OpenHouseMethod = models.CharField(max_length=255, null=True)
+    VirtualOpenHouseUrl = models.CharField(max_length=4000, null=True)
+    ExpectedOnMarketDate = models.DateField(null=True)
+
+    class Meta:
+        verbose_name_plural = "BrightOpenHouses"
+        indexes = [
+            models.Index(fields=["OpenHouseModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.OpenHouseKey)
 
 
 class BrightProperties(BaseModel):
@@ -1059,91 +1313,52 @@ class BrightProperties(BaseModel):
     OfferManagementProvider = models.CharField(max_length=255, null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "BrightProperties"
+        indexes = [
+            models.Index(fields=["ModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
         return str(self.ListingKey)
 
 
-class SysOfficeMedia(BaseModel):
-    SysMediaObjectKey = models.CharField(max_length=255, null=True)
-    SysMediaKey = models.BigIntegerField(primary_key=True)
-    SysMediaType = models.CharField(max_length=255, null=True)
-    SysMediaExternalKey = models.CharField(max_length=20, null=True)
-    SysMediaItemNumber = models.IntegerField(null=True)
-    SysMediaDisplayOrder = models.IntegerField(null=True)
-    SysMediaSize = models.CharField(max_length=255, null=True)
-    SysMediaMimeType = models.CharField(max_length=255, null=True)
-    SysMediaBytes = models.CharField(max_length=255, null=True)
-    SysMediaFileName = models.CharField(max_length=3000, null=True)
-    SysMediaCaption = models.CharField(max_length=50, null=True)
-    SysMediaDescription = models.CharField(max_length=4000, null=True)
-    SysMediaURL = models.URLField(max_length=4000, null=True)
-    SysMediaCreationTimestamp = models.DateTimeField(null=True)
-    SysMediaModificationTimestamp = models.DateTimeField(null=True)
-    SysMediaSystemLocale = models.CharField(max_length=255, null=True)
-    SysMediaSubSystemLocale = models.CharField(max_length=255, null=True)
-    SysMediaProcessingStatus = models.CharField(max_length=255, null=True)
-    SysMediaPendingFileName = models.CharField(max_length=3000, null=True)
-    SysMediaExtSysProcessingCode = models.CharField(max_length=100, null=True)
-    SysMediaExtSysProcessingTime = models.IntegerField(null=True)
-    SysMediaExtSysResizeTime = models.IntegerField(null=True)
-    SysMediaExtSysTotalBytes = models.CharField(max_length=255, null=True)
-    SysMediaExtSysWriteTime = models.IntegerField(null=True)
-    SysMediaExtSysErrorMessage = models.CharField(max_length=4000, null=True)
-    SysMediaObjectID = models.CharField(max_length=255, null=True)
+class BuildingName(BaseModel):
+    BldgNameKey = models.BigIntegerField(primary_key=True)
+    BldgNameName = models.CharField(max_length=50, null=True)
+    BldgNameRelatedBldgNameKey = models.CharField(max_length=255, null=True)
+    BldgNameStatus = models.CharField(max_length=255, null=True)
+    BldgNameURL = models.URLField(max_length=4000, null=True)
+    BldgNameCounty = models.CharField(max_length=255, null=True)
+    BldgNameState = models.CharField(max_length=255, null=True)
+    BldgNameModificationTimestamp = models.DateTimeField(null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "BuildingName"
+        indexes = [
+            models.Index(fields=["BldgNameModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
-        return str(self.SysMediaKey)
+        return str(self.BldgNameKey)
 
 
-class ListingSubscription(BaseModel):
-    """
-    FIXME: Does not exist in metadata
-    """
-
-    LsubKey = models.BigIntegerField(primary_key=True)
-    LsubListingKey = models.CharField(max_length=255, null=True)
-    LsubRequestedClassKey = models.CharField(max_length=255, null=True)
-    LsubClassKey = models.CharField(max_length=255, null=True)
-    ReqSubscriptionClassServiceKey = models.CharField(max_length=255, null=True)
-    County = models.CharField(max_length=255, null=True)
+class City(BaseModel):
+    CtyCityKey = models.BigIntegerField(primary_key=True)
+    CtyCityName = models.CharField(max_length=50, null=True)
+    CtyCityCounty = models.CharField(max_length=255, null=True)
+    CtyCityType = models.CharField(max_length=255, null=True)
+    CtyCityTowhnship = models.CharField(max_length=255, null=True)
+    CtyCountyState = models.CharField(max_length=255, null=True)
+    CtyModificationTimestamp = models.DateTimeField(null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "City"
+        indexes = [
+            models.Index(fields=["CtyModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
-        return str(self.LsubKey)
-
-
-class PropertyArea(BaseModel):
-    Location = models.CharField(max_length=255, null=True)
-    PropAreaKey = models.BigIntegerField(primary_key=True)
-    PropAreaCounty = models.CharField(max_length=255, null=True)
-    PropAreaType = models.CharField(max_length=255, null=True)
-    PropAreaModificationTimestamp = models.DateTimeField(null=True)
-    PropAreaState = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.PropAreaKey)
-
-
-class RelatedLookup(BaseModel):
-    LookupKey = models.CharField(max_length=15, null=True)
-    RelatedLookupKey = models.BigIntegerField(primary_key=True)
-    ModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.RelatedLookupKey)
+        return str(self.CtyCityKey)
 
 
 class CityZipCode(BaseModel):
@@ -1157,88 +1372,13 @@ class CityZipCode(BaseModel):
     CityZipModificationTimestamp = models.DateTimeField(null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "CityZipCode"
+        indexes = [
+            models.Index(fields=["CityZipModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
         return str(self.CityZipCodeKey)
-
-
-class BrightMedia(BaseModel):
-    Location = models.CharField(max_length=255, null=True)
-    PropertyType = models.CharField(max_length=255, null=True)
-    County = models.CharField(max_length=255, null=True)
-    MediaBytes = models.CharField(max_length=255, null=True)
-    MediaCategory = models.CharField(max_length=255, null=True)
-    MediaCreationTimestamp = models.DateTimeField(null=True)
-    MediaExternalKey = models.CharField(max_length=20, null=True)
-    MediaFileName = models.CharField(max_length=3000, null=True)
-    MediaImageOf = models.CharField(max_length=255, null=True)
-    MediaItemNumber = models.IntegerField(null=True)
-    MediaKey = models.BigIntegerField(primary_key=True)
-    MediaLongDescription = models.CharField(max_length=1024, null=True)
-    MediaModificationTimestamp = models.DateTimeField(null=True)
-    MediaDisplayOrder = models.IntegerField(null=True)
-    MediaOriginalBytes = models.CharField(max_length=255, null=True)
-    MediaOriginalHeight = models.IntegerField(null=True)
-    MediaOriginalWidth = models.IntegerField(null=True)
-    MediaShortDescription = models.CharField(max_length=50, null=True)
-    MediaSizeDescription = models.CharField(max_length=255, null=True)
-    MediaSourceFileName = models.CharField(max_length=3000, null=True)
-    MediaSubSystemLocale = models.CharField(max_length=255, null=True)
-    MediaSystemLocale = models.CharField(max_length=255, null=True)
-    MediaType = models.CharField(max_length=255, null=True)
-    MediaURL = models.URLField(max_length=4000, null=True)
-    MediaURLFull = models.URLField(max_length=4000, null=True)
-    MediaURLHD = models.URLField(max_length=4000, null=True)
-    MediaURLHiRes = models.URLField(max_length=4000, null=True)
-    MediaURLMedium = models.URLField(max_length=4000, null=True)
-    MediaURLThumb = models.URLField(max_length=4000, null=True)
-    MlsStatus = models.CharField(max_length=255, null=True)
-    PreferredPhotoYN = models.BooleanField(null=True)
-    ResourceName = models.CharField(max_length=255, null=True)
-    ListingId = models.CharField(max_length=255, null=True)
-    ResourceRecordKey = models.CharField(max_length=255, null=True)
-    MediaVendorID = models.CharField(max_length=30, null=True)
-    MediaVendorName = models.CharField(max_length=80, null=True)
-    MediaVendorIDType = models.CharField(max_length=255, null=True)
-    MediaSourceBusinessPartner = models.CharField(max_length=255, null=True)
-    MediaSourceInput = models.CharField(max_length=255, null=True)
-    MediaSourceTransport = models.CharField(max_length=255, null=True)
-    MediaImageHeight = models.IntegerField(null=True)
-    MediaImageWidth = models.IntegerField(null=True)
-    ListingSourceRecordKey = models.CharField(max_length=30, null=True)
-    MediaVisibility = models.CharField(max_length=255, null=True)
-    PropMediaProcessingStatus = models.CharField(max_length=255, null=True)
-    PropMediaPendingFileName = models.CharField(max_length=3000, null=True)
-    PropMediaExtSysProcessingCode = models.CharField(max_length=4000, null=True)
-    PropMediaExtSysProcessingTime = models.IntegerField(null=True)
-    PropMediaExtSysResizeTime = models.IntegerField(null=True)
-    PropMediaExtSysTotalBytes = models.CharField(max_length=255, null=True)
-    PropMediaExtSysWriteTime = models.IntegerField(null=True)
-    PropMediaExtSysErrorMessage = models.CharField(max_length=4000, null=True)
-    MediaObjectId = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.MediaKey)
-
-
-class TeamMember(BaseModel):
-    TeamMemberKey = models.BigIntegerField(primary_key=True)
-    TeamMemberTeamKey = models.CharField(max_length=255, null=True)
-    TeamMemberMemberKey = models.CharField(max_length=255, null=True)
-    TeamMemberRelationshipKey = models.CharField(max_length=255, null=True)
-    TeamMemberRelationshipActiveFlag = models.BooleanField(null=True)
-    TeamMemberRelationshipName = models.CharField(max_length=80, null=True)
-    TeamMemberModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.TeamMemberKey)
 
 
 class Deletion(BaseModel):
@@ -1249,181 +1389,38 @@ class Deletion(BaseModel):
     DeleteKey = models.CharField(max_length=256, null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "Deletion"
+        indexes = [
+            models.Index(fields=["DeletionTimestamp"]),
+        ]
 
     def __str__(self) -> str:
         return str(self.UniversalKey)
 
 
-class BrightOffices(BaseModel):
-    FranchiseAffiliation = models.CharField(max_length=50, null=True)
-    IDXOfficeParticipationYN = models.BooleanField(null=True)
-    MainOfficeKey = models.CharField(max_length=255, null=True)
-    MainOfficeMlsId = models.CharField(max_length=25, null=True)
-    ModificationTimestamp = models.DateTimeField(null=True)
-    OfficeAssociationPrimary = models.CharField(max_length=255, null=True)
-    OfficeAddress1 = models.CharField(max_length=50, null=True)
-    OfficeAddress2 = models.CharField(max_length=50, null=True)
-    OfficeBoxNumber = models.CharField(max_length=10, null=True)
-    OfficeBranchType = models.CharField(max_length=255, null=True)
-    OfficeBrokerAcceptedPortalTermsOfUseYN = models.BooleanField(null=True)
-    OfficeBrokerAcceptedPortalTermsOfUseVersion = models.CharField(
-        max_length=10, null=True
-    )
-    OfficeBrokerKey = models.CharField(max_length=255, null=True)
-    OfficeBrokerLeadEmail = models.CharField(max_length=128, null=True)
-    OfficeBrokerLeadPhoneNumber = models.CharField(max_length=128, null=True)
-    OfficeBrokerMlsId = models.CharField(max_length=25, null=True)
-    OfficeCity = models.CharField(max_length=50, null=True)
-    OfficeCountry = models.CharField(max_length=255, null=True)
-    OfficeCounty = models.CharField(max_length=255, null=True)
-    OfficeDateAdded = models.DateTimeField(null=True)
-    OfficeDateTerminated = models.DateTimeField(null=True)
-    OfficeEmail = models.CharField(max_length=80, null=True)
-    OfficeFax = models.CharField(max_length=16, null=True)
-    OfficeKey = models.BigIntegerField(primary_key=True)
-    OfficeManagerKey = models.CharField(max_length=255, null=True)
-    OfficeLatitude = models.CharField(max_length=255, null=True)
-    OfficeLeadToListingAgentYN = models.BooleanField(null=True)
-    OfficeLongitude = models.CharField(max_length=255, null=True)
-    OfficeManagerEmail = models.CharField(max_length=3000, null=True)
-    OfficeManagerMlsId = models.CharField(max_length=25, null=True)
-    OfficeManagerName = models.CharField(max_length=80, null=True)
-    OfficeMlsId = models.CharField(max_length=25, null=True)
-    OfficeName = models.CharField(max_length=80, null=True)
-    OfficeNationalAssociationId = models.CharField(max_length=25, null=True)
-    OfficeNumViolations = models.IntegerField(null=True)
-    OfficePhone = models.CharField(max_length=16, null=True)
-    OfficePhoneExt = models.IntegerField(null=True)
-    OfficePhoneOther = models.CharField(max_length=10, null=True)
-    OfficePostalCode = models.CharField(max_length=10, null=True)
-    OfficePostalCodePlus4 = models.CharField(max_length=4, null=True)
-    OfficeRoleList = models.CharField(max_length=4000, null=True)
-    OfficeStateOrProvince = models.CharField(max_length=255, null=True)
-    OfficeStatus = models.CharField(max_length=255, null=True)
-    OfficeStreetDirSuffix = models.CharField(max_length=255, null=True)
-    OfficeStreetException = models.CharField(max_length=10, null=True)
-    OfficeStreetName = models.CharField(max_length=50, null=True)
-    OfficeStreetNumber = models.IntegerField(null=True)
-    OfficeStreetSuffix = models.CharField(max_length=255, null=True)
-    OfficeTradingAs = models.CharField(max_length=50, null=True)
-    OfficeType = models.CharField(max_length=255, null=True)
-    OfficeUnitDesignation = models.CharField(max_length=255, null=True)
-    OfficeUnitNumber = models.CharField(max_length=20, null=True)
-    OfficeUserName = models.CharField(max_length=30, null=True)
-    OfficeSubSystemLocale = models.CharField(max_length=255, null=True)
-    OfficeSystemLocale = models.CharField(max_length=255, null=True)
-    SocialMediaBlogUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaFacebookUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaLinkedInUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaTwitterUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaWebsiteUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaYouTubeUrlOrId = models.CharField(max_length=8000, null=True)
-    OfficeSourceBusinessPartner = models.CharField(max_length=255, null=True)
-    OfficeSourceRecordKey = models.CharField(max_length=255, null=True)
-    SyndicateAgentOption = models.CharField(max_length=255, null=True)
-    SyndicateTo = models.JSONField(default=list)
-    OfficeSourceRecordID = models.CharField(max_length=128, null=True)
-    OfficeBrightConvertedYN = models.BooleanField(null=True)
-    OfficeSourceInput = models.CharField(max_length=255, null=True)
-    OfficeSourceTransport = models.CharField(max_length=255, null=True)
-    MainOfficeName = models.CharField(max_length=50, null=True)
-    OfficeAssociationsFullList = models.JSONField(default=list)
-    OfficeValidationStatus = models.CharField(max_length=255, null=True)
-    OfficeCorporateLicense = models.CharField(max_length=50, null=True)
-    SourceModificationTimestamp = models.DateTimeField(null=True)
-    OfficeStreetDirPrefix = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.OfficeKey)
-
-
-class SchoolDistrict(BaseModel):
-    SchoolDistrictKey = models.BigIntegerField(primary_key=True)
-    SchoolDistrictName = models.CharField(max_length=80, null=True)
-    SchoolDistrictURL = models.URLField(max_length=4000, null=True)
-    SchoolDistrictCounty = models.CharField(max_length=255, null=True)
-    SchoolDistrictState = models.CharField(max_length=255, null=True)
-    SchoolDistrictModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.SchoolDistrictKey)
-
-
-class PartyPermissions(BaseModel):
-    PartyPermKey = models.BigIntegerField(primary_key=True)
-    PartyPermAccessLevelType = models.CharField(max_length=255, null=True)
-    PartyPermPermissionType = models.CharField(max_length=255, null=True)
-    PartyPermGrantorPartyKey = models.CharField(max_length=255, null=True)
-    PartyPermGranteePartyKey = models.CharField(max_length=255, null=True)
-    PartyPermSystemLocale = models.CharField(max_length=255, null=True)
-    PpPermissionGroup = models.CharField(max_length=255, null=True)
-    PartyPermSubSystemLocale = models.CharField(max_length=255, null=True)
-    PartyPermModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.PartyPermKey)
-
-
-class SysPartyLicense(BaseModel):
-    SysPartyLicenseKey = models.BigIntegerField(primary_key=True)
-    SysPartyLicenseState = models.CharField(max_length=255, null=True)
-    SysPartyLicenseNumber = models.CharField(max_length=20, null=True)
-    SysPartyLicenseExpirationDate = models.DateField(null=True)
-    SysPartyLicensePartyKey = models.CharField(max_length=255, null=True)
-    SysPartyLicenseType = models.CharField(max_length=255, null=True)
-    SysPartyLicenseModificationTimestamp = models.DateTimeField(null=True)
-    SysPartyLicenseSystemLocale = models.CharField(max_length=255, null=True)
-    SysPartyLicenseSubSystemLocale = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.SysPartyLicenseKey)
-
-
-class BrightOpenHouses(BaseModel):
+class GreenVerification(BaseModel):
+    GreenVerificationKey = models.BigIntegerField(primary_key=True)
+    GreenVerificationSystemLocale = models.CharField(max_length=255, null=True)
+    GreenVerificationSubSystemLocale = models.CharField(max_length=255, null=True)
+    GreenVerificationListingKey = models.CharField(max_length=255, null=True)
+    GreenVerificationBody = models.CharField(max_length=255, null=True)
+    GreenVerificationProgramType = models.CharField(max_length=255, null=True)
+    GreenVerificationYear = models.IntegerField(null=True)
+    GreenVerificationRating = models.CharField(max_length=255, null=True)
+    GreenVerificationScore = models.IntegerField(null=True)
+    GreenVerificationStatus = models.CharField(max_length=255, null=True)
     County = models.CharField(max_length=255, null=True)
-    ListingId = models.CharField(max_length=255, null=True)
-    MlsStatus = models.CharField(max_length=255, null=True)
-    OpenHouseAttendedBy = models.CharField(max_length=255, null=True)
-    OpenHouseCreationTimestamp = models.DateTimeField(null=True)
-    OpenHouseDate = models.DateField(null=True)
-    OpenHouseItemNumber = models.IntegerField(null=True)
-    OpenHouseEndTime = models.DateTimeField(null=True)
-    OpenHouseKey = models.BigIntegerField(primary_key=True)
-    OpenHouseListingKey = models.CharField(max_length=255, null=True)
-    OpenHouseModificationTimestamp = models.DateTimeField(null=True)
-    OpenHouseSourceBusinessPartner = models.CharField(max_length=255, null=True)
-    OpenHouseSourceInput = models.CharField(max_length=255, null=True)
-    OpenHouseRemarks = models.CharField(max_length=500, null=True)
-    OpenHouseSourceTransport = models.CharField(max_length=255, null=True)
-    OpenHouseSubSystemLocale = models.CharField(max_length=255, null=True)
-    OpenHouseSystemLocale = models.CharField(max_length=255, null=True)
     ListingSourceRecordKey = models.CharField(max_length=30, null=True)
-    OpenHouseExternalSystemID = models.CharField(max_length=30, null=True)
-    ListOfficeMlsId = models.CharField(max_length=25, null=True)
-    OpenHouseStartTime = models.DateTimeField(null=True)
-    OpenHouseType = models.CharField(max_length=255, null=True)
-    OpenHouseMethod = models.CharField(max_length=255, null=True)
-    VirtualOpenHouseUrl = models.CharField(max_length=4000, null=True)
-    ExpectedOnMarketDate = models.DateField(null=True)
+    GreenVerificationModificationTimestamp = models.DateTimeField(null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "GreenVerification"
+        indexes = [
+            models.Index(fields=["GreenVerificationModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
-        return str(self.OpenHouseKey)
+        return str(self.GreenVerificationKey)
 
 
 class History(BaseModel):
@@ -1457,163 +1454,320 @@ class History(BaseModel):
     PropHistHistColumnKey = models.CharField(max_length=255, null=True)
 
     class Meta:
+        verbose_name_plural = "History"
         ordering = ["-PropHistChangeTimestamp"]
         indexes = [
             models.Index(fields=["PropHistChangeTimestamp"]),
             models.Index(fields=["PropHistListingKey"]),
             models.Index(fields=["PropHistTableName"]),
+            models.Index(fields=["PropHistChangeType"]),
+            models.Index(fields=["PropHistColumnName"]),
         ]
 
     def __str__(self) -> str:
         return str(self.PropHistKey)
 
 
-class BusinessHistoryDeletions(BaseModel):
-    """
-    FIXME: Not persist in metadata
-    """
-
-    DelUchHistChangeKey = models.BigIntegerField(primary_key=True)
-    DelUchHistSystemLocale = models.CharField(max_length=255, null=True)
-    DelUchHistSubSystemLocale = models.CharField(max_length=255, null=True)
-    DelUchHistDeletedTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.DelUchHistChangeKey)
-
-
-class GreenVerification(BaseModel):
-    GreenVerificationKey = models.BigIntegerField(primary_key=True)
-    GreenVerificationSystemLocale = models.CharField(max_length=255, null=True)
-    GreenVerificationSubSystemLocale = models.CharField(max_length=255, null=True)
-    GreenVerificationListingKey = models.CharField(max_length=255, null=True)
-    GreenVerificationBody = models.CharField(max_length=255, null=True)
-    GreenVerificationProgramType = models.CharField(max_length=255, null=True)
-    GreenVerificationYear = models.IntegerField(null=True)
-    GreenVerificationRating = models.CharField(max_length=255, null=True)
-    GreenVerificationScore = models.IntegerField(null=True)
-    GreenVerificationStatus = models.CharField(max_length=255, null=True)
-    County = models.CharField(max_length=255, null=True)
-    ListingSourceRecordKey = models.CharField(max_length=30, null=True)
-    GreenVerificationModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.GreenVerificationKey)
-
-
-class City(BaseModel):
-    CtyCityKey = models.BigIntegerField(primary_key=True)
-    CtyCityName = models.CharField(max_length=50, null=True)
-    CtyCityCounty = models.CharField(max_length=255, null=True)
-    CtyCityType = models.CharField(max_length=255, null=True)
-    CtyCityTowhnship = models.CharField(max_length=255, null=True)
-    CtyCountyState = models.CharField(max_length=255, null=True)
-    CtyModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.CtyCityKey)
-
-
-class BrightMembers(BaseModel):
-    JobTitle = models.CharField(max_length=50, null=True)
-    MemberAddress1 = models.CharField(max_length=50, null=True)
-    MemberAddress2 = models.CharField(max_length=50, null=True)
-    MemberBoxNumber = models.CharField(max_length=10, null=True)
-    MemberCity = models.CharField(max_length=50, null=True)
-    MemberCountry = models.CharField(max_length=255, null=True)
-    MemberCounty = models.CharField(max_length=255, null=True)
-    MemberDesignation = models.JSONField(default=list)
-    MemberDirectPhone = models.CharField(max_length=16, null=True)
-    MemberEmail = models.CharField(max_length=80, null=True)
-    MemberFax = models.CharField(max_length=16, null=True)
-    MemberFirstName = models.CharField(max_length=50, null=True)
-    MemberFullName = models.CharField(max_length=150, null=True)
-    MemberFullRoleList = models.CharField(max_length=4000, null=True)
-    MemberJoinDate = models.DateField(null=True)
-    MemberKey = models.BigIntegerField(primary_key=True)
-    MemberLastName = models.CharField(max_length=50, null=True)
-    MemberLicenseExpirationDate = models.DateField(null=True)
-    MemberLoginId = models.CharField(max_length=25, null=True)
-    MemberMiddleInitial = models.CharField(max_length=5, null=True)
-    MemberMiddleName = models.CharField(max_length=50, null=True)
-    MemberMlsId = models.CharField(max_length=25, null=True)
-    MemberMobilePhone = models.CharField(max_length=16, null=True)
-    MemberNamePrefix = models.CharField(max_length=255, null=True)
-    MemberNameSuffix = models.CharField(max_length=255, null=True)
-    MemberNationalAssociationId = models.CharField(max_length=25, null=True)
-    MemberNickname = models.CharField(max_length=50, null=True)
-    MemberNumViolations = models.IntegerField(null=True)
-    MemberOfficePhone = models.CharField(max_length=16, null=True)
-    MemberOfficePhoneExt = models.IntegerField(null=True)
-    MemberPager = models.CharField(max_length=16, null=True)
-    MemberPostalCode = models.CharField(max_length=10, null=True)
-    MemberPostalCodePlus4 = models.CharField(max_length=4, null=True)
-    MemberPreferredPhone = models.CharField(max_length=16, null=True)
-    MemberPreferredPhoneExt = models.IntegerField(null=True)
-    MemberPrivateEmail = models.CharField(max_length=3000, null=True)
-    MemberRatePlugFlag = models.BooleanField(null=True)
-    MemberReinstatementDate = models.DateField(null=True)
-    MemberRoleList = models.CharField(max_length=4000, null=True)
-    MemberStateLicense = models.CharField(max_length=50, null=True)
-    MemberStateLicenseState = models.CharField(max_length=255, null=True)
-    MemberStateOrProvince = models.CharField(max_length=255, null=True)
-    MemberStatus = models.CharField(max_length=255, null=True)
-    MemberStreetDirSuffix = models.CharField(max_length=255, null=True)
-    MemberStreetException = models.CharField(max_length=10, null=True)
-    MemberStreetName = models.CharField(max_length=50, null=True)
-    MemberStreetNumber = models.IntegerField(null=True)
-    MemberStreetSuffix = models.CharField(max_length=255, null=True)
-    MemberTerminationDate = models.DateField(null=True)
-    MemberType = models.CharField(max_length=255, null=True)
-    MemberSubType = models.CharField(max_length=255, null=True)
-    MemberUnitDesignation = models.CharField(max_length=255, null=True)
-    MemberUnitNumber = models.CharField(max_length=20, null=True)
-    MemberVoiceMailExt = models.CharField(max_length=15, null=True)
-    MemberVoiceMail = models.CharField(max_length=16, null=True)
+class Lookup(BaseModel):
+    LookupKey = models.BigIntegerField(primary_key=True)
+    LookupName = models.CharField(max_length=64, null=True)
+    LookupValue = models.CharField(max_length=1024, null=True)
+    StandardLookupValue = models.CharField(max_length=1024, null=True)
+    LegacyODataValue = models.CharField(max_length=20, null=True)
     ModificationTimestamp = models.DateTimeField(null=True)
-    OfficeKey = models.CharField(max_length=255, null=True)
-    OfficeMlsId = models.CharField(max_length=25, null=True)
-    OfficeBrokerKey = models.CharField(max_length=255, null=True)
-    OfficeName = models.CharField(max_length=80, null=True)
-    OfficeBrokerMlsId = models.CharField(max_length=25, null=True)
-    MemberDateAdded = models.DateTimeField(null=True)
-    SocialMediaBlogUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaFacebookUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaLinkedInUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaTwitterUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaWebsiteUrlOrId = models.CharField(max_length=8000, null=True)
-    SocialMediaYouTubeUrlOrId = models.CharField(max_length=8000, null=True)
-    MemberSourceInput = models.CharField(max_length=255, null=True)
-    MemberSourceRecordKey = models.CharField(max_length=255, null=True)
-    MemberSourceRecordID = models.CharField(max_length=128, null=True)
-    MemberSourceBusinessPartner = models.CharField(max_length=255, null=True)
-    MemberSourceTransport = models.CharField(max_length=255, null=True)
-    SyndicateTo = models.JSONField(default=list)
-    MemberSubSystemLocale = models.CharField(max_length=255, null=True)
-    MemberSystemLocale = models.CharField(max_length=255, null=True)
-    MemberPreferredFirstName = models.CharField(max_length=128, null=True)
-    MemberPreferredLastName = models.CharField(max_length=128, null=True)
-    MemberBrightConvertedYN = models.BooleanField(null=True)
-    MemberAssociationPrimary = models.CharField(max_length=255, null=True)
-    MemberAssociationsFullList = models.JSONField(default=list)
-    MemberPreviewYN = models.BooleanField(null=True)
-    SourceModificationTimestamp = models.DateTimeField(null=True)
-    MemberStreetDirPrefix = models.CharField(max_length=255, null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "Lookup"
+        indexes = [
+            models.Index(fields=["ModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
-        return self.MemberStreetDirPrefix
+        return str(self.LookupKey)
+
+
+class PartyPermissions(BaseModel):
+    PartyPermKey = models.BigIntegerField(primary_key=True)
+    PartyPermAccessLevelType = models.CharField(max_length=255, null=True)
+    PartyPermPermissionType = models.CharField(max_length=255, null=True)
+    PartyPermGrantorPartyKey = models.CharField(max_length=255, null=True)
+    PartyPermGranteePartyKey = models.CharField(max_length=255, null=True)
+    PartyPermSystemLocale = models.CharField(max_length=255, null=True)
+    PpPermissionGroup = models.CharField(max_length=255, null=True)
+    PartyPermSubSystemLocale = models.CharField(max_length=255, null=True)
+    PartyPermModificationTimestamp = models.DateTimeField(null=True)
+
+    class Meta:
+        verbose_name_plural = "PartyPermissions"
+        indexes = [
+            models.Index(fields=["PartyPermModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.PartyPermKey)
+
+
+class PropertyArea(BaseModel):
+    Location = models.CharField(max_length=255, null=True)
+    PropAreaKey = models.BigIntegerField(primary_key=True)
+    PropAreaCounty = models.CharField(max_length=255, null=True)
+    PropAreaType = models.CharField(max_length=255, null=True)
+    PropAreaModificationTimestamp = models.DateTimeField(null=True)
+    PropAreaState = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name_plural = "PropertyArea"
+        indexes = [
+            models.Index(fields=["PropAreaModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.PropAreaKey)
+
+
+class RelatedLookup(BaseModel):
+    LookupKey = models.CharField(max_length=15, null=True)
+    RelatedLookupKey = models.BigIntegerField(primary_key=True)
+    ModificationTimestamp = models.DateTimeField(null=True)
+
+    class Meta:
+        verbose_name_plural = "RelatedLookup"
+        indexes = [
+            models.Index(fields=["ModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.RelatedLookupKey)
+
+
+class Room(BaseModel):
+    RoomKey = models.BigIntegerField(primary_key=True)
+    RoomListingKey = models.CharField(max_length=255, null=True)
+    County = models.CharField(max_length=255, null=True)
+    RoomType = models.CharField(max_length=255, null=True)
+    RoomLength = models.IntegerField(null=True)
+    RoomWidth = models.IntegerField(null=True)
+    RoomLevel = models.CharField(max_length=255, null=True)
+    RoomExistsYN = models.BooleanField(null=True)
+    RoomDisplayOrder = models.IntegerField(null=True)
+    RoomItemNumber = models.IntegerField(null=True)
+    RoomArea = models.IntegerField(null=True)
+    RoomDimensions = models.CharField(max_length=50, null=True)
+    RoomFeatures = models.JSONField(default=list)
+    RoomSystemLocale = models.CharField(max_length=255, null=True)
+    RoomSubSystemLocale = models.CharField(max_length=255, null=True)
+    ListingSourceRecordKey = models.CharField(max_length=30, null=True)
+    RoomModificationTimestamp = models.DateTimeField(null=True)
+    RoomDescription = models.CharField(max_length=1024, null=True)
+    RoomSourceRecordKey = models.CharField(max_length=50, null=True)
+
+    class Meta:
+        verbose_name_plural = "Room"
+        indexes = [
+            models.Index(fields=["RoomModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.RoomKey)
+
+
+class School(BaseModel):
+    SchoolName = models.CharField(max_length=80, null=True)
+    SchoolCounty = models.CharField(max_length=255, null=True)
+    SchoolKey = models.BigIntegerField(primary_key=True)
+    SchoolDistrictName = models.CharField(max_length=80, null=True)
+    SchoolDistrictKey = models.CharField(max_length=255, null=True)
+    SchoolModificationTimestamp = models.DateTimeField(null=True)
+    SchoolType = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name_plural = "School"
+        indexes = [
+            models.Index(fields=["SchoolModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.SchoolKey)
+
+
+class SchoolDistrict(BaseModel):
+    SchoolDistrictKey = models.BigIntegerField(primary_key=True)
+    SchoolDistrictName = models.CharField(max_length=80, null=True)
+    SchoolDistrictURL = models.URLField(max_length=4000, null=True)
+    SchoolDistrictCounty = models.CharField(max_length=255, null=True)
+    SchoolDistrictState = models.CharField(max_length=255, null=True)
+    SchoolDistrictModificationTimestamp = models.DateTimeField(null=True)
+
+    class Meta:
+        verbose_name_plural = "SchoolDistrict"
+        indexes = [
+            models.Index(fields=["SchoolDistrictModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.SchoolDistrictKey)
+
+
+# 'SchoolElementary': <class 'odata.metadata.EntitySetSchoolElementary'>,
+# 'SchoolHigh': <class 'odata.metadata.EntitySetSchoolHigh'>,
+# 'SchoolMiddle': <class 'odata.metadata.EntitySetSchoolMiddle'>,
+
+
+class Subdivision(BaseModel):
+    LoSubdivisionKey = models.BigIntegerField(primary_key=True)
+    LoSubdivisionName = models.CharField(max_length=50, null=True)
+    LoSubdivisionSystemValidatedFlag = models.BooleanField(null=True)
+    LoSubdivisionCounty = models.CharField(max_length=255, null=True)
+    LoSubdivisionState = models.CharField(max_length=255, null=True)
+    LoSubdivisionModificationTimestamp = models.DateTimeField(null=True)
+    LoSubdivisionStatus = models.CharField(max_length=255, null=True)
+    LoSubdivisionURL = models.URLField(max_length=4000, null=True)
+    LoSubdivisionRelatedSubdivisionKey = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name_plural = "Subdivision"
+        indexes = [
+            models.Index(fields=["LoSubdivisionModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.LoSubdivisionKey)
+
+
+class SysAgentMedia(BaseModel):
+    SysMediaObjectKey = models.CharField(max_length=255, null=True)
+    SysMediaKey = models.BigIntegerField(primary_key=True)
+    SysMediaType = models.CharField(max_length=255, null=True)
+    SysMediaExternalKey = models.CharField(max_length=20, null=True)
+    SysMediaItemNumber = models.IntegerField(null=True)
+    SysMediaDisplayOrder = models.IntegerField(null=True)
+    SysMediaSize = models.CharField(max_length=255, null=True)
+    SysMediaMimeType = models.CharField(max_length=255, null=True)
+    SysMediaBytes = models.CharField(max_length=255, null=True)
+    SysMediaFileName = models.CharField(max_length=3000, null=True)
+    SysMediaCaption = models.CharField(max_length=50, null=True)
+    SysMediaDescription = models.CharField(max_length=4000, null=True)
+    SysMediaURL = models.URLField(max_length=4000, null=True)
+    SysMediaCreationTimestamp = models.DateTimeField(null=True)
+    SysMediaModificationTimestamp = models.DateTimeField(null=True)
+    SysMediaSystemLocale = models.CharField(max_length=255, null=True)
+    SysMediaSubSystemLocale = models.CharField(max_length=255, null=True)
+    SysMediaProcessingStatus = models.CharField(max_length=255, null=True)
+    SysMediaPendingFileName = models.CharField(max_length=3000, null=True)
+    SysMediaExtSysProcessingCode = models.CharField(max_length=100, null=True)
+    SysMediaExtSysProcessingTime = models.IntegerField(null=True)
+    SysMediaExtSysResizeTime = models.IntegerField(null=True)
+    SysMediaExtSysTotalBytes = models.CharField(max_length=255, null=True)
+    SysMediaExtSysWriteTime = models.IntegerField(null=True)
+    SysMediaExtSysErrorMessage = models.CharField(max_length=4000, null=True)
+    SysMediaObjectID = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name_plural = "SysAgentMedia"
+        indexes = [
+            models.Index(fields=["SysMediaModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.SysMediaKey)
+
+
+class SysOfficeMedia(BaseModel):
+    SysMediaObjectKey = models.CharField(max_length=255, null=True)
+    SysMediaKey = models.BigIntegerField(primary_key=True)
+    SysMediaType = models.CharField(max_length=255, null=True)
+    SysMediaExternalKey = models.CharField(max_length=20, null=True)
+    SysMediaItemNumber = models.IntegerField(null=True)
+    SysMediaDisplayOrder = models.IntegerField(null=True)
+    SysMediaSize = models.CharField(max_length=255, null=True)
+    SysMediaMimeType = models.CharField(max_length=255, null=True)
+    SysMediaBytes = models.CharField(max_length=255, null=True)
+    SysMediaFileName = models.CharField(max_length=3000, null=True)
+    SysMediaCaption = models.CharField(max_length=50, null=True)
+    SysMediaDescription = models.CharField(max_length=4000, null=True)
+    SysMediaURL = models.URLField(max_length=4000, null=True)
+    SysMediaCreationTimestamp = models.DateTimeField(null=True)
+    SysMediaModificationTimestamp = models.DateTimeField(null=True)
+    SysMediaSystemLocale = models.CharField(max_length=255, null=True)
+    SysMediaSubSystemLocale = models.CharField(max_length=255, null=True)
+    SysMediaProcessingStatus = models.CharField(max_length=255, null=True)
+    SysMediaPendingFileName = models.CharField(max_length=3000, null=True)
+    SysMediaExtSysProcessingCode = models.CharField(max_length=100, null=True)
+    SysMediaExtSysProcessingTime = models.IntegerField(null=True)
+    SysMediaExtSysResizeTime = models.IntegerField(null=True)
+    SysMediaExtSysTotalBytes = models.CharField(max_length=255, null=True)
+    SysMediaExtSysWriteTime = models.IntegerField(null=True)
+    SysMediaExtSysErrorMessage = models.CharField(max_length=4000, null=True)
+    SysMediaObjectID = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name_plural = "SysOfficeMedia"
+        indexes = [
+            models.Index(fields=["SysMediaModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.SysMediaKey)
+
+
+class SysPartyLicense(BaseModel):
+    SysPartyLicenseKey = models.BigIntegerField(primary_key=True)
+    SysPartyLicenseState = models.CharField(max_length=255, null=True)
+    SysPartyLicenseNumber = models.CharField(max_length=20, null=True)
+    SysPartyLicenseExpirationDate = models.DateField(null=True)
+    SysPartyLicensePartyKey = models.CharField(max_length=255, null=True)
+    SysPartyLicenseType = models.CharField(max_length=255, null=True)
+    SysPartyLicenseModificationTimestamp = models.DateTimeField(null=True)
+    SysPartyLicenseSystemLocale = models.CharField(max_length=255, null=True)
+    SysPartyLicenseSubSystemLocale = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name_plural = "SysPartyLicense"
+        indexes = [
+            models.Index(fields=["SysPartyLicenseModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.SysPartyLicenseKey)
+
+
+class Team(BaseModel):
+    TeamKey = models.BigIntegerField(primary_key=True)
+    TeamName = models.CharField(max_length=80, null=True)
+    TeamSystemLocale = models.CharField(max_length=255, null=True)
+    TeamSubSystemLocale = models.CharField(max_length=255, null=True)
+    TeamLeadMemberKey = models.CharField(max_length=255, null=True)
+    TeamModificationTimestamp = models.DateTimeField(null=True)
+    TeamStatus = models.CharField(max_length=255, null=True)
+    TeamExternalSystemID = models.CharField(max_length=50, null=True)
+
+    class Meta:
+        verbose_name_plural = "Team"
+        indexes = [
+            models.Index(fields=["TeamModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.TeamKey)
+
+
+class TeamMember(BaseModel):
+    TeamMemberKey = models.BigIntegerField(primary_key=True)
+    TeamMemberTeamKey = models.CharField(max_length=255, null=True)
+    TeamMemberMemberKey = models.CharField(max_length=255, null=True)
+    TeamMemberRelationshipKey = models.CharField(max_length=255, null=True)
+    TeamMemberRelationshipActiveFlag = models.BooleanField(null=True)
+    TeamMemberRelationshipName = models.CharField(max_length=80, null=True)
+    TeamMemberModificationTimestamp = models.DateTimeField(null=True)
+
+    class Meta:
+        verbose_name_plural = "TeamMember"
+        indexes = [
+            models.Index(fields=["TeamMemberModificationTimestamp"]),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.TeamMemberKey)
 
 
 class Unit(BaseModel):
@@ -1649,175 +1803,124 @@ class Unit(BaseModel):
     UnitTypeSourceRecordKey = models.CharField(max_length=50, null=True)
 
     class Meta:
-        pass
+        verbose_name_plural = "Unit"
+        indexes = [
+            models.Index(fields=["PropUnitModificationTimestamp"]),
+        ]
 
     def __str__(self) -> str:
         return str(self.UnitTypeKey)
 
 
-class Lookup(BaseModel):
-    LookupKey = models.BigIntegerField(primary_key=True)
-    LookupName = models.CharField(max_length=64, null=True)
-    LookupValue = models.CharField(max_length=1024, null=True)
-    StandardLookupValue = models.CharField(max_length=1024, null=True)
-    LegacyODataValue = models.CharField(max_length=20, null=True)
-    ModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.LookupKey)
+# --------- Prohibited models ------------
 
 
-class Subdivision(BaseModel):
-    LoSubdivisionKey = models.BigIntegerField(primary_key=True)
-    LoSubdivisionName = models.CharField(max_length=50, null=True)
-    LoSubdivisionSystemValidatedFlag = models.BooleanField(null=True)
-    LoSubdivisionCounty = models.CharField(max_length=255, null=True)
-    LoSubdivisionState = models.CharField(max_length=255, null=True)
-    LoSubdivisionModificationTimestamp = models.DateTimeField(null=True)
-    LoSubdivisionStatus = models.CharField(max_length=255, null=True)
-    LoSubdivisionURL = models.URLField(max_length=4000, null=True)
-    LoSubdivisionRelatedSubdivisionKey = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.LoSubdivisionKey)
-
-
-class SysAgentMedia(BaseModel):
-    SysMediaObjectKey = models.CharField(max_length=255, null=True)
-    SysMediaKey = models.BigIntegerField(primary_key=True)
-    SysMediaType = models.CharField(max_length=255, null=True)
-    SysMediaExternalKey = models.CharField(max_length=20, null=True)
-    SysMediaItemNumber = models.IntegerField(null=True)
-    SysMediaDisplayOrder = models.IntegerField(null=True)
-    SysMediaSize = models.CharField(max_length=255, null=True)
-    SysMediaMimeType = models.CharField(max_length=255, null=True)
-    SysMediaBytes = models.CharField(max_length=255, null=True)
-    SysMediaFileName = models.CharField(max_length=3000, null=True)
-    SysMediaCaption = models.CharField(max_length=50, null=True)
-    SysMediaDescription = models.CharField(max_length=4000, null=True)
-    SysMediaURL = models.URLField(max_length=4000, null=True)
-    SysMediaCreationTimestamp = models.DateTimeField(null=True)
-    SysMediaModificationTimestamp = models.DateTimeField(null=True)
-    SysMediaSystemLocale = models.CharField(max_length=255, null=True)
-    SysMediaSubSystemLocale = models.CharField(max_length=255, null=True)
-    SysMediaProcessingStatus = models.CharField(max_length=255, null=True)
-    SysMediaPendingFileName = models.CharField(max_length=3000, null=True)
-    SysMediaExtSysProcessingCode = models.CharField(max_length=100, null=True)
-    SysMediaExtSysProcessingTime = models.IntegerField(null=True)
-    SysMediaExtSysResizeTime = models.IntegerField(null=True)
-    SysMediaExtSysTotalBytes = models.CharField(max_length=255, null=True)
-    SysMediaExtSysWriteTime = models.IntegerField(null=True)
-    SysMediaExtSysErrorMessage = models.CharField(max_length=4000, null=True)
-    SysMediaObjectID = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.SysMediaKey)
-
-
-class PartyProfileOption(BaseModel):
-    """
-    Fixme: Not persist in metadata
-    """
-
-    POName = models.CharField(max_length=50, null=True)
-    PPOCharValue = models.CharField(max_length=4000, null=True)
-    PPODateValue = models.DateField(null=True)
-    PPOKey = models.BigIntegerField(primary_key=True)
-    PPONumValue = models.CharField(max_length=255, null=True)
-    PPOPartyKey = models.CharField(max_length=255, null=True)
-    PPOPOIKey = models.CharField(max_length=255, null=True)
-    PPOUserCustomizableFlag = models.BooleanField(null=True)
-    PPOClobValue = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.PPOKey)
-
-
-class Team(BaseModel):
-    TeamKey = models.BigIntegerField(primary_key=True)
-    TeamName = models.CharField(max_length=80, null=True)
-    TeamSystemLocale = models.CharField(max_length=255, null=True)
-    TeamSubSystemLocale = models.CharField(max_length=255, null=True)
-    TeamLeadMemberKey = models.CharField(max_length=255, null=True)
-    TeamModificationTimestamp = models.DateTimeField(null=True)
-    TeamStatus = models.CharField(max_length=255, null=True)
-    TeamExternalSystemID = models.CharField(max_length=50, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.TeamKey)
-
-
-class School(BaseModel):
-    SchoolName = models.CharField(max_length=80, null=True)
-    SchoolCounty = models.CharField(max_length=255, null=True)
-    SchoolKey = models.BigIntegerField(primary_key=True)
-    SchoolDistrictName = models.CharField(max_length=80, null=True)
-    SchoolDistrictKey = models.CharField(max_length=255, null=True)
-    SchoolModificationTimestamp = models.DateTimeField(null=True)
-    SchoolType = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.SchoolKey)
-
-
-class BuildingName(BaseModel):
-    BldgNameKey = models.BigIntegerField(primary_key=True)
-    BldgNameName = models.CharField(max_length=50, null=True)
-    BldgNameRelatedBldgNameKey = models.CharField(max_length=255, null=True)
-    BldgNameStatus = models.CharField(max_length=255, null=True)
-    BldgNameURL = models.URLField(max_length=4000, null=True)
-    BldgNameCounty = models.CharField(max_length=255, null=True)
-    BldgNameState = models.CharField(max_length=255, null=True)
-    BldgNameModificationTimestamp = models.DateTimeField(null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.BldgNameKey)
-
-
-class Room(BaseModel):
-    RoomKey = models.BigIntegerField(primary_key=True)
-    RoomListingKey = models.CharField(max_length=255, null=True)
-    County = models.CharField(max_length=255, null=True)
-    RoomType = models.CharField(max_length=255, null=True)
-    RoomLength = models.IntegerField(null=True)
-    RoomWidth = models.IntegerField(null=True)
-    RoomLevel = models.CharField(max_length=255, null=True)
-    RoomExistsYN = models.BooleanField(null=True)
-    RoomDisplayOrder = models.IntegerField(null=True)
-    RoomItemNumber = models.IntegerField(null=True)
-    RoomArea = models.IntegerField(null=True)
-    RoomDimensions = models.CharField(max_length=50, null=True)
-    RoomFeatures = models.JSONField(default=list)
-    RoomSystemLocale = models.CharField(max_length=255, null=True)
-    RoomSubSystemLocale = models.CharField(max_length=255, null=True)
-    ListingSourceRecordKey = models.CharField(max_length=30, null=True)
-    RoomModificationTimestamp = models.DateTimeField(null=True)
-    RoomDescription = models.CharField(max_length=1024, null=True)
-    RoomSourceRecordKey = models.CharField(max_length=50, null=True)
-
-    class Meta:
-        pass
-
-    def __str__(self) -> str:
-        return str(self.RoomKey)
+# class BuilderModel(BaseModel):
+#     """
+#     FIXME Does not exist in metadata....
+#     """
+#
+#     BuilderModelKey = models.BigIntegerField(primary_key=True)
+#     BuilderModelName = models.CharField(max_length=50, null=True)
+#     BuilderModelRelatedBuilderModelKey = models.CharField(max_length=255, null=True)
+#     BuilderModelStatus = models.CharField(max_length=255, null=True)
+#     BuilderModelCounty = models.CharField(max_length=255, null=True)
+#     BuilderModelModificationTimestamp = models.DateTimeField(null=True)
+#
+#     class Meta:
+#         pass
+#
+#     def __str__(self) -> str:
+#         return str(self.BuilderModelName)
+#
+#
+# class BusinessHistoryDeletions(BaseModel):
+#     """
+#     FIXME: Not persist in metadata
+#     """
+#
+#     DelUchHistChangeKey = models.BigIntegerField(primary_key=True)
+#     DelUchHistSystemLocale = models.CharField(max_length=255, null=True)
+#     DelUchHistSubSystemLocale = models.CharField(max_length=255, null=True)
+#     DelUchHistDeletedTimestamp = models.DateTimeField(null=True)
+#
+#     class Meta:
+#         pass
+#
+#     def __str__(self) -> str:
+#         return str(self.DelUchHistChangeKey)
+#
+#
+# class LisBusinessHistory(BaseModel):
+#     """
+#     FIXME Does not exist in metadata....
+#     """
+#
+#     UchPropHistChangeKey = models.BigIntegerField(primary_key=True)
+#     UchPropHistListingKey = models.CharField(max_length=255, null=True)
+#     UchPropHistPartyKey = models.CharField(max_length=255, null=True)
+#     UchPropHistChangeType = models.CharField(max_length=20, null=True)
+#     UchPropHistChangeTypePckItemKey = models.CharField(max_length=255, null=True)
+#     UchPropHistChangeTimestamp = models.DateTimeField(null=True)
+#     SystemName = models.CharField(max_length=50, null=True)
+#     PropHistColumnName = models.CharField(max_length=64, null=True)
+#     TableName = models.CharField(max_length=30, null=True)
+#     TableSchemaKey = models.CharField(max_length=255, null=True)
+#     UchPropHistOriginalColumnValue = models.CharField(max_length=4000, null=True)
+#     UchPropHistNewColumnValue = models.CharField(max_length=4000, null=True)
+#     UchPropHistOriginalPickListValue = models.CharField(max_length=80, null=True)
+#     UchPropHistNewPickListValue = models.CharField(max_length=80, null=True)
+#     UchPropHistItemNumber = models.IntegerField(null=True)
+#     UchPropHistSubSystemLocale = models.CharField(max_length=255, null=True)
+#     UchPropHistSystemLocale = models.CharField(max_length=255, null=True)
+#     BasicListingID = models.CharField(max_length=20, null=True)
+#     FullStreetAddress = models.CharField(max_length=80, null=True)
+#     UchPropHistCreationTimestamp = models.DateTimeField(null=True)
+#     UchPropHistModificationTimestamp = models.DateTimeField(null=True)
+#
+#     class Meta:
+#         pass
+#
+#     def __str__(self) -> str:
+#         return str(self.UchPropHistChangeKey)
+#
+#
+# class ListingSubscription(BaseModel):
+#     """
+#     FIXME: Does not exist in metadata
+#     """
+#
+#     LsubKey = models.BigIntegerField(primary_key=True)
+#     LsubListingKey = models.CharField(max_length=255, null=True)
+#     LsubRequestedClassKey = models.CharField(max_length=255, null=True)
+#     LsubClassKey = models.CharField(max_length=255, null=True)
+#     ReqSubscriptionClassServiceKey = models.CharField(max_length=255, null=True)
+#     County = models.CharField(max_length=255, null=True)
+#
+#     class Meta:
+#         pass
+#
+#     def __str__(self) -> str:
+#         return str(self.LsubKey)
+#
+#
+# class PartyProfileOption(BaseModel):
+#     """
+#     Fixme: Not persist in metadata
+#     """
+#
+#     POName = models.CharField(max_length=50, null=True)
+#     PPOCharValue = models.CharField(max_length=4000, null=True)
+#     PPODateValue = models.DateField(null=True)
+#     PPOKey = models.BigIntegerField(primary_key=True)
+#     PPONumValue = models.CharField(max_length=255, null=True)
+#     PPOPartyKey = models.CharField(max_length=255, null=True)
+#     PPOPOIKey = models.CharField(max_length=255, null=True)
+#     PPOUserCustomizableFlag = models.BooleanField(null=True)
+#     PPOClobValue = models.CharField(max_length=255, null=True)
+#
+#     class Meta:
+#         pass
+#
+#     def __str__(self) -> str:
+#         return str(self.PPOKey)

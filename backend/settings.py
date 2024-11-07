@@ -35,6 +35,7 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split()
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split()
 DOMAIN = os.environ.get("DOMAIN", "localhost:8000")
 SECURE_SSL_REDIRECT = bool(int(os.environ.get("SECURE_SSL_REDIRECT", "0")))
 
@@ -48,6 +49,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "whitenoise.runserver_nostatic",  # allows not tu use whitenoise in local
     "django.contrib.staticfiles",
+    "explorer",
+    "django_sql_dashboard",
 ]
 if DEBUG:
     INSTALLED_APPS += [
@@ -124,7 +127,15 @@ DATABASES = {
         "PASSWORD": connection["PASSWORD"],
         "HOST": connection["HOST"],
         "PORT": 5432,
-    }
+    },
+    "dashboard": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": connection["NAME"],
+        "USER": connection["USER"],
+        "PASSWORD": connection["PASSWORD"],
+        "HOST": connection["HOST"],
+        "PORT": 5432,
+    },
 }
 # the thing is that we need to have the same database for testing on Heroku
 if "amazonaws.com" in DATABASES["default"]["HOST"]:
@@ -228,6 +239,10 @@ BRIGHT_MLS_CLIENT_ID = os.environ.get("BRIGHT_MLS_CLIENT_ID", "")
 BRIGHT_MLS_CLIENT_SECRET = os.environ.get("BRIGHT_MLS_CLIENT_SECRET", "")
 
 
+# SQL Explorer settings
+EXPLORER_AI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+
 # Logging
 LOGGING = {
     "version": 1,
@@ -249,6 +264,21 @@ LOGGING = {
         "": {
             "level": "DEBUG" if DEBUG else "WARNING",
             "handlers": ["console"],
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "WARNING",  # Ignore DEBUG and INFO logs for django.request
+            "propagate": False,
+        },
+        "urllib3": {
+            "handlers": ["console"],
+            "level": "WARNING",  # Ignore DEBUG and INFO logs for urllib3
+            "propagate": False,
+        },
+        "odata": {
+            "handlers": ["console"],
+            "level": "WARNING",  # Ignore DEBUG and INFO logs for urllib3
+            "propagate": False,
         },
     },
 }

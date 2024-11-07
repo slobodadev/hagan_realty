@@ -1,78 +1,10 @@
-import os
-import re
-import requests
-import logging
 from pprint import pprint
-from odata import ODataService
-from authlib.integrations.requests_client import OAuth2Session
-from django.conf import settings
-from django.db import connection
-from django.utils.dateparse import parse_datetime
+import re
 from brightmls import models as bright_models
+from brightmls.services.base import BrightMLSBaseService
 
 
-class BrightMLSService:
-    entity_name = None
-    limit = 10000
-    offset = 0
-    stop = 10**9
-
-    def __init__(self):
-        self.auth_url = settings.BRIGHT_MLS_AUTH_URL
-        self.api_url = settings.BRIGHT_MLS_API_URL
-        self.client_id = settings.BRIGHT_MLS_CLIENT_ID
-        self.client_secret = settings.BRIGHT_MLS_CLIENT_SECRET
-        self.access_token = None
-
-        # print("-- client_id", self.client_id)
-        # print("-- client_secret", self.client_secret)
-        # print("-- auth_url", self.auth_url)
-        # print("-- api_url", self.api_url)
-
-        if not isinstance(self.limit, int):
-            raise ValueError("Limit must be an integer")
-        if not isinstance(self.offset, int):
-            raise ValueError("Offset must be an integer")
-        if not isinstance(self.stop, int):
-            raise ValueError("Stop must be an integer")
-
-    def get_oauth_token(self):
-        """Retrieve OAuth 2.0 access token using client credentials."""
-
-        session = OAuth2Session(self.client_id, self.client_secret, scope="clientcred")
-        # print("---session", session)
-
-        # Fetch the OAuth 2.0 token
-        token = session.fetch_token(self.auth_url, grant_type="client_credentials")
-        print("---token", token)
-
-        self.access_token = token["access_token"]
-
-        return self.access_token
-
-    def get_client(self):
-        """Create an OData client with OAuth 2.0 token."""
-        if not self.access_token:
-            self.get_oauth_token()
-
-        # Set up the OData client using pyodata
-        session = requests.Session()
-        session.headers.update(
-            {
-                "User-Agent": "Bright WebAPI/1.0",
-                "Authorization": f"Bearer {self.access_token}",
-            }
-        )
-
-        # print("session.headers", session.headers)
-
-        return ODataService(
-            self.api_url,
-            session=session,
-            reflect_entities=True,
-            # reflect_output_package="backend.apps.brightmls.entities_cache",
-        )
-
+class BrightMLSGrabService(BrightMLSBaseService):
     def populate(self):
         entities = self.get_client().entities
 

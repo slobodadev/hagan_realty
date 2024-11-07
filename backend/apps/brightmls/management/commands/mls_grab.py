@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
-from brightmls.services import BrightMLSService
+from brightmls.services.grab import BrightMLSGrabService
+from brightmls.services.grab_threaded import BrightMLSGrabThreadedService
 
 
 class Command(BaseCommand):
@@ -7,14 +8,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # mandatory string name of the entity argument
-        parser.add_argument("entity", nargs=1, type=str, help="Entity name")
+        parser.add_argument(
+            "entity", nargs=1, type=str, help="Entity name (the same as Model name)"
+        )
 
         # add optional int limit argument
         parser.add_argument(
             "limit",
             nargs="?",
             type=int,
-            help="Select this count of records once",
+            help="Select this count of records once (defaults to 10000)",
         )
 
         # add optional int offset argument
@@ -22,7 +25,7 @@ class Command(BaseCommand):
             "offset",
             nargs="?",
             type=int,
-            help="Start the process from this record number",
+            help="Start the process from this record number (defaults to 0)",
         )
 
         # add optional int stop argument with description
@@ -30,12 +33,11 @@ class Command(BaseCommand):
             "stop",
             nargs="?",
             type=int,
-            help="Stop the process at this record number",
+            help="Stop the process at this record number (defaults to the end of the table)",
         )
 
     def handle(self, *args, **options):
-        # try:
-        service = BrightMLSService()
+        service = BrightMLSGrabThreadedService()
 
         service.entity_name = options["entity"][0]
         if options["limit"]:

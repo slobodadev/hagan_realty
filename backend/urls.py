@@ -22,11 +22,13 @@ from django.conf import settings
 from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView
 
-admin.site.site_header = "Mammoth Agency"
+admin.site.site_header = "Hagan Realty"
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="dashboard/")),
+    path("", RedirectView.as_view(url="admin/")),
     path("admin/", admin.site.urls),
+    path("dashboard/", include("django_sql_dashboard.urls")),
+    path("explorer/", include("explorer.urls")),
     # path(
     #     "favicon.ico",
     #     RedirectView.as_view(

@@ -4,6 +4,18 @@ from brightmls import models as bright_models
 from backend.core.admin import ViewOnlyAdminMixin, ImageUrlFieldsAdminMixin
 
 
+@admin.register(bright_models.BrightProperties)
+class BrightPropertiesAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+    list_display = [
+        "ListingKey",
+        "Location",
+        "ModificationTimestamp",
+    ]
+    search_fields = [
+        "ListingKey",
+    ]
+
+
 @admin.register(bright_models.SysOfficeMedia)
 class SysOfficeMediaAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     list_display = [
@@ -362,12 +374,12 @@ class BrightOpenHouseAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 class HistoryAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     list_display = [
         "PropHistKey",
+        "PropHistChangeTimestamp",
         "PropHistListingKey",
         "PropHistRecordKey",
         "PropHistPartyKey",
         "PropHistChangeType",
         "PropHistChangeTypeLkp",
-        "PropHistChangeTimestamp",
         "PropHistColumnName",
         "PropHistTableName",
         "PropHistOriginalColumnValue",
@@ -391,7 +403,9 @@ class HistoryAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
         "PropHistHistColumnKey",
     ]
     list_filter = [
+        "PropHistChangeType",
         "PropHistTableName",
+        "PropHistColumnName",
     ]
     search_fields = [
         "PropHistKey",
@@ -710,104 +724,92 @@ class RoomAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     ]
 
 
-@admin.register(bright_models.BusinessHistoryDeletions)
-class BusinessHistoryDeletionsAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
-    list_display = [
-        "DelUchHistChangeKey",
-        "DelUchHistSystemLocale",
-        "DelUchHistSubSystemLocale",
-        "DelUchHistDeletedTimestamp",
-    ]
-    search_fields = [
-        "DelUchHistChangeKey",
-    ]
+# @admin.register(bright_models.BusinessHistoryDeletions)
+# class BusinessHistoryDeletionsAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+#     list_display = [
+#         "DelUchHistChangeKey",
+#         "DelUchHistSystemLocale",
+#         "DelUchHistSubSystemLocale",
+#         "DelUchHistDeletedTimestamp",
+#     ]
+#     search_fields = [
+#         "DelUchHistChangeKey",
+#     ]
 
 
-@admin.register(bright_models.BuilderModel)
-class BuilderModelAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
-    list_display = [
-        "BuilderModelKey",
-        "BuilderModelName",
-        "BuilderModelRelatedBuilderModelKey",
-        "BuilderModelStatus",
-        "BuilderModelCounty",
-        "BuilderModelModificationTimestamp",
-    ]
-    search_fields = [
-        "BuilderModelKey",
-    ]
+# @admin.register(bright_models.BuilderModel)
+# class BuilderModelAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+#     list_display = [
+#         "BuilderModelKey",
+#         "BuilderModelName",
+#         "BuilderModelRelatedBuilderModelKey",
+#         "BuilderModelStatus",
+#         "BuilderModelCounty",
+#         "BuilderModelModificationTimestamp",
+#     ]
+#     search_fields = [
+#         "BuilderModelKey",
+#     ]
 
 
-@admin.register(bright_models.LisBusinessHistory)
-class LisBusinessHistoryAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
-    list_display = [
-        "UchPropHistChangeKey",
-        "UchPropHistListingKey",
-        "UchPropHistPartyKey",
-        "UchPropHistChangeType",
-        "UchPropHistChangeTypePckItemKey",
-        "UchPropHistChangeTimestamp",
-        "SystemName",
-        "PropHistColumnName",
-        "TableName",
-        "TableSchemaKey",
-        "UchPropHistOriginalColumnValue",
-        "UchPropHistNewColumnValue",
-        "UchPropHistOriginalPickListValue",
-        "UchPropHistNewPickListValue",
-        "UchPropHistItemNumber",
-        "UchPropHistSubSystemLocale",
-        "UchPropHistSystemLocale",
-        "BasicListingID",
-        "FullStreetAddress",
-        "UchPropHistCreationTimestamp",
-        "UchPropHistModificationTimestamp",
-    ]
-    search_fields = [
-        "UchPropHistChangeKey",
-    ]
+# @admin.register(bright_models.LisBusinessHistory)
+# class LisBusinessHistoryAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+#     list_display = [
+#         "UchPropHistChangeKey",
+#         "UchPropHistListingKey",
+#         "UchPropHistPartyKey",
+#         "UchPropHistChangeType",
+#         "UchPropHistChangeTypePckItemKey",
+#         "UchPropHistChangeTimestamp",
+#         "SystemName",
+#         "PropHistColumnName",
+#         "TableName",
+#         "TableSchemaKey",
+#         "UchPropHistOriginalColumnValue",
+#         "UchPropHistNewColumnValue",
+#         "UchPropHistOriginalPickListValue",
+#         "UchPropHistNewPickListValue",
+#         "UchPropHistItemNumber",
+#         "UchPropHistSubSystemLocale",
+#         "UchPropHistSystemLocale",
+#         "BasicListingID",
+#         "FullStreetAddress",
+#         "UchPropHistCreationTimestamp",
+#         "UchPropHistModificationTimestamp",
+#     ]
+#     search_fields = [
+#         "UchPropHistChangeKey",
+#     ]
 
 
-@admin.register(bright_models.ListingSubscription)
-class ListingSubscriptionAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
-    list_display = [
-        "LsubKey",
-        "LsubListingKey",
-        "LsubRequestedClassKey",
-        "LsubClassKey",
-        "ReqSubscriptionClassServiceKey",
-        "County",
-    ]
-    search_fields = [
-        "LsubKey",
-    ]
+# @admin.register(bright_models.ListingSubscription)
+# class ListingSubscriptionAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+#     list_display = [
+#         "LsubKey",
+#         "LsubListingKey",
+#         "LsubRequestedClassKey",
+#         "LsubClassKey",
+#         "ReqSubscriptionClassServiceKey",
+#         "County",
+#     ]
+#     search_fields = [
+#         "LsubKey",
+#     ]
 
 
-@admin.register(bright_models.PartyProfileOption)
-class PartyProfileOptionAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
-    list_display = [
-        "POName",
-        "PPOCharValue",
-        "PPODateValue",
-        "PPOKey",
-        "PPONumValue",
-        "PPOPartyKey",
-        "PPOPOIKey",
-        "PPOUserCustomizableFlag",
-        "PPOClobValue",
-    ]
-    search_fields = [
-        "PPOKey",
-    ]
-
-
-@admin.register(bright_models.BrightProperties)
-class BrightPropertiesAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
-    list_display = [
-        "ListingKey",
-        "Location",
-        "ModificationTimestamp",
-    ]
-    search_fields = [
-        "ListingKey",
-    ]
+# @admin.register(bright_models.PartyProfileOption)
+# class PartyProfileOptionAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+#     list_display = [
+#         "POName",
+#         "PPOCharValue",
+#         "PPODateValue",
+#         "PPOKey",
+#         "PPONumValue",
+#         "PPOPartyKey",
+#         "PPOPOIKey",
+#         "PPOUserCustomizableFlag",
+#         "PPOClobValue",
+#     ]
+#     search_fields = [
+#         "PPOKey",
+#     ]

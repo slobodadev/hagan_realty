@@ -4,6 +4,14 @@ services:
   db:
     image: postgres:16.4-alpine
     platform: linux/x86_64 # it is required to work on apple silicon
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+        reservations:
+          cpus: '1'
+          memory: 4G
     ports:
       - "5433:5432"
     networks:

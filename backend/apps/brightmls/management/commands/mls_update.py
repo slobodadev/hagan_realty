@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # optional string name of the entity argument (will update all entities if not provided)
-        # parser.add_argument("entity", nargs="?", type=str, help="Entity name")
+        parser.add_argument("entity", nargs="?", type=str, help="Entity name")
 
         # add optional int limit argument
         parser.add_argument(
@@ -28,25 +28,25 @@ class Command(BaseCommand):
         # )
 
         # add optional int stop argument with description
-        parser.add_argument(
-            "stop",
-            nargs="?",
-            type=int,
-            help="Stop the process at this record number",
-        )
+        # parser.add_argument(
+        #     "stop",
+        #     nargs="?",
+        #     type=int,
+        #     help="Stop the process at this record number",
+        # )
 
     def handle(self, *args, **options):
         # try:
         service = BrightMLSUpdateService()
 
-        # if options["entity"]:
-        #     service.entity_name = options["entity"]
+        if options["entity"]:
+            service.entity_name = options["entity"]
         if options["limit"]:
             service.limit = options["limit"]
         # if options["offset"]:
         #     service.offset = options["offset"]
-        if options["stop"]:
-            service.stop = options["stop"]
+        # if options["stop"]:
+        #     service.stop = options["stop"]
 
         try:
             service.update()

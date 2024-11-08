@@ -100,7 +100,23 @@ This will clear the table of the specified entity.
 
 ### Updating the data
 
-This section is not finished yet... 
+Caution: you can not update the data if the populating process is not finished yet.
+
+The reason is: some entities have the ModificationTimestamp field set to None. 
+So, this records will not be retrieved by the update process.
+
+To update the data, run the following command:
+`docker-compose exec web python manage.py mls_update` 
+to update all entities one by one.
+
+or 
+
+`docker-compose exec web python manage.py mls_update <EntityName>` where `<EntityName>` is the name of the entity to update.
+
+Also you can specify the `limit` argument to limit the number of records to update at one iteration 
+(default value is 10000, but for large entities you can set it to a smaller value to avoid the connection timeout).
+
+`docker-compose exec web python manage.py mls_update BrightProperties 2000`
 
 ### Changing the structure of the DB
 
@@ -120,7 +136,7 @@ To see logs of the web project, run `docker-compose logs -f` in the root of the 
 Go to `/tmp/dumps` directory (it is volume mapped to the `dumps` directory in the root of the project)
 
 Run the following command: 
-`docker-compose exec db pg_dump -Fc -t 'brightmls_*' --data-only --username=local_dbuser --host=localhost local_db > 2024-10-29.sql`
+`docker-compose exec db pg_dump -Z2 -Fc -t 'brightmls_*' --data-only --username=local_dbuser --host=localhost local_db > 2024-10-29.sql`
 
 This will create a dump of all tables of brightmls app, but WITHOUT the schema. INSERT statements will be used to restore the data.
 

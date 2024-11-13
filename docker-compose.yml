@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:16.4-alpine
     platform: linux/x86_64 # it is required to work on apple silicon
+    hostname: db
     deploy:
       resources:
         limits:

@@ -436,7 +436,7 @@ class GreenVerificationAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(bright_models.City)
-class CityAdmin(admin.ModelAdmin):
+class CityAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     list_display = [
         "CtyCityKey",
         "CtyCityName",

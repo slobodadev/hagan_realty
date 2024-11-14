@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",  # allows not tu use whitenoise in local
     "django.contrib.staticfiles",
     "explorer",
-    "django_sql_dashboard",
+    # "django_sql_dashboard",
 ]
 if DEBUG:
     INSTALLED_APPS += [

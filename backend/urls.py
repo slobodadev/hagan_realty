@@ -27,7 +27,7 @@ admin.site.site_header = "Hagan Realty"
 urlpatterns = [
     path("", RedirectView.as_view(url="admin/")),
     path("admin/", admin.site.urls),
-    path("dashboard/", include("django_sql_dashboard.urls")),
+    # path("dashboard/", include("django_sql_dashboard.urls")),
     path("explorer/", include("explorer.urls")),
     # path(
     #     "favicon.ico",

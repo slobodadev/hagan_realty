@@ -1,6 +1,8 @@
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
+# from odata import ODataService
 from odata import ODataService
 from authlib.integrations.requests_client import OAuth2Session
 from django.conf import settings
@@ -58,9 +60,11 @@ class BrightMLSBaseService:
                 {
                     "User-Agent": "Bright WebAPI/1.0",
                     "Authorization": f"Bearer {self.access_token}",
+                    "Prefer": f"odata.maxpagesize={self.limit}",
                 }
             )
 
+            # self.service = ODataService(
             self.service = ODataService(
                 self.api_url,
                 session=session,

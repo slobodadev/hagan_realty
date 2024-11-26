@@ -1,68 +1,73 @@
 from pprint import pprint
 import re
+import tracemalloc
+import gc
 from brightmls import models as bright_models
 from brightmls.services.base import BrightMLSBaseService
 
 
 class BrightMLSGrabService(BrightMLSBaseService):
-    def populate(self):
-        entities = self.get_client().entities
+    last_pk = None
+    total_inserted = 0
 
-        pprint(entities)
+    def populate(self):
+        service = self.get_client()
+
+        print(f"--- Iterating entity: {self.entity_name}")
 
         try:
-            entity_meta = entities[self.entity_name]
+            entity_resource = service.entities[self.entity_name]
         except KeyError:
             raise ValueError(
                 f"Entity {self.entity_name} not found. "
                 f"Provide the name in camel case as it specified on Bright MLS website"
             )
 
-        # pprint(entity_meta)
+        model_class = getattr(bright_models, self.entity_name)
 
-        # convert entity name to snake case
-        method_name = (
-            "populate_" + re.sub(r"(?<!^)(?=[A-Z])", "_", self.entity_name).lower()
-        )
+        tracemalloc.start()
 
-        if not hasattr(self, method_name):
-            print("=== Warning, method not found, use default behavior! ===")
+        entities = []
 
-            for entities_block in self._entities_iterator():
-                if len(entities_block) == 1:
-                    pprint(entities_block[0].__dict__)
-                self._bulk_create_simple(
-                    getattr(bright_models, self.entity_name), entities_block
-                )
-        else:
-            getattr(self, method_name)()
+        query = service.query(entity_resource)
+        if self.last_pk:
+            skiptoken = f"last_pk:{self.last_pk},odata.maxpagesize:{self.limit}"
+            # query.options["$skiptoken"] = skiptoken
+            # print("---- setting")
+            query.skiptoken(skiptoken)
 
-    def _entities_iterator(self):
-        service = self.get_client()
+        for entity in query:
+            # print(entity.__dict__)
+            entities.append(entity)
 
-        print(f"--- Iterating entity: {self.entity_name}")
+            if len(entities) >= self.limit:
+                self._insert_entities(model_class, entities)
+                entities = []
 
-        entity_resource = service.entities[self.entity_name]
+        if entities:
+            self._insert_entities(model_class, entities)
 
-        while True:
-            if self.offset >= self.stop:
-                print(f"--- --- stopped by STOP arg: {self.stop}")
-                break
+    def _insert_entities(self, model_class, entities):
+        self._bulk_create_simple(model_class, entities)
+        self.total_inserted += len(entities)
+        print(".", end="", flush=True)
 
-            print(f"\n--- --- offset:{self.offset}")
-            query = service.query(entity_resource)
-            query = query.offset(self.offset).limit(self.limit)
+        if self.total_inserted % (self.limit * 10) == 0:
+            # gc.collect()
 
-            entities = query.all()
-            print(f"--- --- fetched entities: {len(entities)}")
+            # memory usage
+            current, peak = tracemalloc.get_traced_memory()
+            current_mb = current / 10**6
+            peak_mb = peak / 10**6
+            tracemalloc.reset_peak()
+            memory = f"(memory usage: {current_mb:.2f} MB; peak {peak_mb:.2f} MB)"
 
-            if not entities:
-                print(f"--- --- stopped by entities end")
-                break
+            # last inserted pk
+            pk_field = self._get_models_pk_name(model_class)
+            last_pk = getattr(entities[-1], pk_field)
+            last_pk_str = f"(last pk: {last_pk})"
 
-            self.offset += self.limit
-
-            yield entities
+            print(f"{self.total_inserted:,}", last_pk_str, memory, flush=True)
 
     def _bulk_create_simple(self, model_class, entities_block):
         instances = []
@@ -70,8 +75,70 @@ class BrightMLSGrabService(BrightMLSBaseService):
             instances.append(model_class.from_python_odata(entity))
 
         model_class.objects.bulk_create(
-            instances, batch_size=1000, ignore_conflicts=True
+            instances, batch_size=500, ignore_conflicts=True
         )
+
+    def _get_models_pk_name(self, model_class):
+        return model_class._meta.pk.name
+
+    # def populate_old(self):
+    #     entities = self.get_client().entities
+    #
+    #     pprint(entities)
+    #
+    #     try:
+    #         entity_meta = entities[self.entity_name]
+    #     except KeyError:
+    #         raise ValueError(
+    #             f"Entity {self.entity_name} not found. "
+    #             f"Provide the name in camel case as it specified on Bright MLS website"
+    #         )
+    #
+    #     # pprint(entity_meta)
+    #
+    #     # convert entity name to snake case
+    #     method_name = (
+    #         "populate_" + re.sub(r"(?<!^)(?=[A-Z])", "_", self.entity_name).lower()
+    #     )
+    #
+    #     if not hasattr(self, method_name):
+    #         print("=== Warning, method not found, use default behavior! ===")
+    #
+    #         for entities_block in self._entities_iterator():
+    #             if len(entities_block) == 1:
+    #                 pprint(entities_block[0].__dict__)
+    #             self._bulk_create_simple(
+    #                 getattr(bright_models, self.entity_name), entities_block
+    #             )
+    #     else:
+    #         getattr(self, method_name)()
+    #
+    # def _entities_iterator(self):
+    #     service = self.get_client()
+    #
+    #     print(f"--- Iterating entity: {self.entity_name}")
+    #
+    #     entity_resource = service.entities[self.entity_name]
+    #
+    #     while True:
+    #         if self.offset >= self.stop:
+    #             print(f"--- --- stopped by STOP arg: {self.stop}")
+    #             break
+    #
+    #         print(f"\n--- --- offset:{self.offset}")
+    #         query = service.query(entity_resource)
+    #         query = query.offset(self.offset).limit(self.limit)
+    #
+    #         entities = query.all()
+    #         print(f"--- --- fetched entities: {len(entities)}")
+    #
+    #         if not entities:
+    #             print(f"--- --- stopped by entities end")
+    #             break
+    #
+    #         self.offset += self.limit
+    #
+    #         yield entities
 
     # def populate_bright_properties(self):
     #     bright_models.BrightProperties.objects.all().delete()

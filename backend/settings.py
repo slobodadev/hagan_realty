@@ -61,6 +61,7 @@ if DEBUG:
 # custom apps
 INSTALLED_APPS += [
     "brightmls",
+    "odata",
 ]
 
 

@@ -2,6 +2,7 @@ from pprint import pprint
 import re
 import tracemalloc
 import gc
+from datetime import datetime
 from brightmls import models as bright_models
 from brightmls.services.base import BrightMLSBaseService
 
@@ -9,11 +10,12 @@ from brightmls.services.base import BrightMLSBaseService
 class BrightMLSGrabService(BrightMLSBaseService):
     last_pk = None
     total_inserted = 0
+    start_timestamp = None
 
     def populate(self):
         service = self.get_client()
 
-        print(f"--- Iterating entity: {self.entity_name}")
+        print(f">> Grabbing entity: {self.entity_name}")
 
         try:
             entity_resource = service.entities[self.entity_name]
@@ -26,16 +28,27 @@ class BrightMLSGrabService(BrightMLSBaseService):
         model_class = getattr(bright_models, self.entity_name)
 
         tracemalloc.start()
+        self.start_timestamp = datetime.now()
 
-        entities = []
+        # Try to get the last record if not forced
+        if self.last_pk is not None:
+            print(f">> starting from the last_pk forced as command arg: {self.last_pk}")
+        else:
+            self.last_pk = self._get_biggest_pk(model_class)
+            if self.last_pk is not None:
+                print(f">> starting from the last_pk found in database: {self.last_pk}")
+
+        if self.last_pk is None:
+            print(f">> starting from the beginning of dataset")
 
         query = service.query(entity_resource)
-        if self.last_pk:
-            skiptoken = f"last_pk:{self.last_pk},odata.maxpagesize:{self.limit}"
-            # query.options["$skiptoken"] = skiptoken
-            # print("---- setting")
-            query.skiptoken(skiptoken)
 
+        # set skip token if last pk is provided or exists in the database. Start from the beginning otherwise
+        if self.last_pk:
+            skip_token = f"last_pk:{self.last_pk},odata.maxpagesize:{self.limit}"
+            query.skiptoken(skip_token)
+
+        entities = []
         for entity in query:
             # print(entity.__dict__)
             entities.append(entity)
@@ -60,14 +73,22 @@ class BrightMLSGrabService(BrightMLSBaseService):
             current_mb = current / 10**6
             peak_mb = peak / 10**6
             tracemalloc.reset_peak()
-            memory = f"(memory usage: {current_mb:.2f} MB; peak {peak_mb:.2f} MB)"
+            memory = f"(mem usage: {current_mb:.1f}MB; peak {peak_mb:.1f}MB)"
 
             # last inserted pk
             pk_field = self._get_models_pk_name(model_class)
             last_pk = getattr(entities[-1], pk_field)
             last_pk_str = f"(last pk: {last_pk})"
 
-            print(f"{self.total_inserted:,}", last_pk_str, memory, flush=True)
+            # time from start
+            point_timestamp = datetime.now()
+            time_from_start = point_timestamp - self.start_timestamp
+            formatted_time = str(time_from_start).split(".")[0]
+            time_string = f"(time: {formatted_time})"
+
+            print(
+                f"{self.total_inserted:,}", last_pk_str, memory, time_string, flush=True
+            )
 
     def _bulk_create_simple(self, model_class, entities_block):
         instances = []
@@ -80,6 +101,11 @@ class BrightMLSGrabService(BrightMLSBaseService):
 
     def _get_models_pk_name(self, model_class):
         return model_class._meta.pk.name
+
+    def _get_biggest_pk(self, model_class):
+        pk_field = self._get_models_pk_name(model_class)
+        last_record = model_class.objects.order_by(f"-{pk_field}").first()
+        return getattr(last_record, pk_field) if last_record else None
 
     # def populate_old(self):
     #     entities = self.get_client().entities

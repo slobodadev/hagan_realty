@@ -403,9 +403,9 @@ class HistoryAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
         "PropHistHistColumnKey",
     ]
     list_filter = [
-        "PropHistChangeType",
-        "PropHistTableName",
-        "PropHistColumnName",
+        # "PropHistChangeType",
+        # "PropHistTableName",
+        # "PropHistColumnName",
     ]
     search_fields = [
         "PropHistKey",
